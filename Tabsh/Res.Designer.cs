@@ -105,6 +105,42 @@ namespace Tabsh {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Overwrite {0}? .
+        /// </summary>
+        internal static string OverwriteFile {
+            get {
+                return ResourceManager.GetString("OverwriteFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete {0}? .
+        /// </summary>
+        internal static string DeleteFile {
+            get {
+                return ResourceManager.GetString("DeleteFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0}, are you sure? .
+        /// </summary>
+        internal static string DeleteEverything {
+            get {
+                return ResourceManager.GetString("DeleteEverything", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0}, are you sure? .
+        /// </summary>
+        internal static string RemoveTree {
+            get {
+                return ResourceManager.GetString("RemoveTree", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could Not Find {0}.
         /// </summary>
         internal static string CouldNotFind {
@@ -245,6 +281,24 @@ namespace Tabsh {
         internal static string NoFilesFound {
             get {
                 return ResourceManager.GetString("NoFilesFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A directory is expected after /R..
+        /// </summary>
+        internal static string DirectoryExpected {
+            get {
+                return ResourceManager.GetString("DirectoryExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0,10}   {1,-13}   {2}  {3}.
+        /// </summary>
+        internal static string WhereDetailLine {
+            get {
+                return ResourceManager.GetString("WhereDetailLine", resourceCulture);
             }
         }
         
@@ -1302,6 +1356,42 @@ namespace Tabsh {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [{0}].
+        /// </summary>
+        internal static string WideDirectory {
+            get {
+                return ResourceManager.GetString("WideDirectory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0,-12} {1}.
+        /// </summary>
+        internal static string ShortNameLine {
+            get {
+                return ResourceManager.GetString("ShortNameLine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0,-22} {1}.
+        /// </summary>
+        internal static string OwnerLine {
+            get {
+                return ResourceManager.GetString("OwnerLine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Press any key to continue . . . .
+        /// </summary>
+        internal static string PressAnyKey {
+            get {
+                return ResourceManager.GetString("PressAnyKey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0:dd/MM/yyyy  HH:mm} {1}  {2}.
         /// </summary>
         internal static string DirectoryEntryLine {
@@ -1536,7 +1626,7 @@ namespace Tabsh {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to copies files..
+        ///   Looks up a localized string similar to copies files. /y overwrites without asking, /-y always asks..
         /// </summary>
         internal static string DescribeCopy {
             get {
@@ -1545,7 +1635,7 @@ namespace Tabsh {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to deletes files. /s recurses, /f clears the read only attribute..
+        ///   Looks up a localized string similar to deletes files. /s recurses, /f clears the read only attribute, /p asks each time, /q asks nothing, /a: selects by attribute..
         /// </summary>
         internal static string DescribeDel {
             get {
@@ -1554,7 +1644,7 @@ namespace Tabsh {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to lists a directory. /b bare, /s recurses, /a includes hidden, /o sorts, /r shows data streams..
+        ///   Looks up a localized string similar to lists a directory. /b bare, /w and /d in columns, /p a screenful at a time, /s recurses, /a: selects by attribute, /o sorts, /t: picks the time, /l lowercases, /q owners, /x short names, /r data streams..
         /// </summary>
         internal static string DescribeDir {
             get {
@@ -1653,7 +1743,7 @@ namespace Tabsh {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to moves files and directories..
+        ///   Looks up a localized string similar to moves files and directories. /y overwrites without asking, /-y always asks..
         /// </summary>
         internal static string DescribeMove {
             get {
@@ -1707,7 +1797,7 @@ namespace Tabsh {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to removes directories. /s removes the contents too..
+        ///   Looks up a localized string similar to removes directories. /s removes the contents too, /q does it without asking..
         /// </summary>
         internal static string DescribeRd {
             get {
@@ -1725,7 +1815,7 @@ namespace Tabsh {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to shows or sets variables. set /p name=text reads one in..
+        ///   Looks up a localized string similar to shows or sets variables. set /p name=text reads one in, set /a works one out..
         /// </summary>
         internal static string DescribeSet {
             get {
@@ -1779,7 +1869,7 @@ namespace Tabsh {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to shows every place a name resolves to..
+        ///   Looks up a localized string similar to shows every place a name resolves to. /R searches a tree, /Q is the exit code only, /F quotes, /T adds size and date..
         /// </summary>
         internal static string DescribeWhere {
             get {

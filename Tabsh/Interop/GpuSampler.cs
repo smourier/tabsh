@@ -9,6 +9,9 @@ internal sealed unsafe partial class GpuSampler : IDisposable
     private const string _instancePrefix = "pid_";
     private const int _instanceBufferBytes = 256 * 1024;
 
+    // everything below is written by the sampling thread and read by the one that started it,
+    // and disposing frees the buffer that a sample is reading, so the two are never allowed to overlap.
+    private readonly Lock _gate = new();
     private readonly Dictionary<string, long> _first = [];
     private readonly Dictionary<string, long> _last = [];
     private readonly HashSet<uint> _seen = [];
@@ -52,16 +55,22 @@ internal sealed unsafe partial class GpuSampler : IDisposable
     {
         ArgumentNullException.ThrowIfNull(processIds);
 
-        foreach (var id in processIds)
+        lock (_gate)
         {
-            _seen.Add(id);
+            if (_query == 0)
+                return;
+
+            foreach (var id in processIds)
+            {
+                _seen.Add(id);
+            }
+
+            if (PdhCollectQueryData(_query) != _success)
+                return;
+
+            Accumulate();
+            Peak();
         }
-
-        if (PdhCollectQueryData(_query) != _success)
-            return;
-
-        Accumulate();
-        Peak();
     }
 
     // running time is cumulative from the moment the process started,
@@ -101,15 +110,27 @@ internal sealed unsafe partial class GpuSampler : IDisposable
     public TimeSpan Total()
     {
         long ticks = 0;
-        foreach (var pair in _last)
+        lock (_gate)
         {
-            ticks += pair.Value - _first[pair.Key];
+            foreach (var pair in _last)
+            {
+                ticks += pair.Value - _first[pair.Key];
+            }
         }
 
         return TimeSpan.FromTicks(ticks);
     }
 
-    public ulong PeakMemory => (ulong)_peakMemory;
+    public ulong PeakMemory
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return (ulong)_peakMemory;
+            }
+        }
+    }
 
     // an instance is named pid_1234_luid_..., so the process it belongs to is written on the front of it.
     private bool Belongs(string instance)
@@ -128,7 +149,7 @@ internal sealed unsafe partial class GpuSampler : IDisposable
     private List<KeyValuePair<string, long>> Read(nint counter)
     {
         var values = new List<KeyValuePair<string, long>>();
-        if (counter == 0)
+        if (counter == 0 || _buffer == 0)
             return values;
 
         var size = (uint)_instanceBufferBytes;
@@ -150,16 +171,19 @@ internal sealed unsafe partial class GpuSampler : IDisposable
 
     public void Dispose()
     {
-        if (_query != 0)
+        lock (_gate)
         {
-            PdhCloseQuery(_query);
-            _query = 0;
-        }
+            if (_query != 0)
+            {
+                PdhCloseQuery(_query);
+                _query = 0;
+            }
 
-        if (_buffer != 0)
-        {
-            Marshal.FreeHGlobal(_buffer);
-            _buffer = 0;
+            if (_buffer != 0)
+            {
+                Marshal.FreeHGlobal(_buffer);
+                _buffer = 0;
+            }
         }
     }
 

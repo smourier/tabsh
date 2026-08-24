@@ -10,7 +10,7 @@ internal sealed class BuiltinContext
     private TextWriter? _error;
     private TextReader? _input;
 
-    public BuiltinContext(Shell shell, IReadOnlyList<string> words, StandardHandles handles)
+    public BuiltinContext(Shell shell, IReadOnlyList<string> words, StandardHandles handles, IReadOnlyList<string>? rawWords = null)
     {
         ArgumentNullException.ThrowIfNull(words);
 
@@ -18,12 +18,17 @@ internal sealed class BuiltinContext
         _words = words;
         _handles = handles;
         Arguments = words.Skip(1).ToArray();
+
+        // the same words with their quotes still on,
+        // since start reads a quoted first word as a window title and cannot tell one apart without them.
+        RawArguments = rawWords != null && rawWords.Count == words.Count ? rawWords.Skip(1).ToArray() : Arguments;
     }
 
     public Shell Shell { get; }
     public ShellEnvironment Environment => Shell.Environment;
     public string Name => _words.Count > 0 ? _words[0] : string.Empty;
     public IReadOnlyList<string> Arguments { get; }
+    public IReadOnlyList<string> RawArguments { get; }
 
     public TextWriter Output => _output ??= StandardStreams.CreateWriter(_handles.Output);
     public TextWriter Error => _error ??= StandardStreams.CreateWriter(_handles.Error);

@@ -555,7 +555,8 @@ child is started, because interrupting the child is the console's job and not th
 
 Both under `%LOCALAPPDATA%\Tabsh`:
 
-* `history.txt`, the last thousand lines, loaded at startup and written on the way out.
+* `history.txt`, the last thousand lines, loaded at startup and written a line at a time as you enter them.
+  Holding them back until the end would lose a session closed with its cross, so nothing waits.
   A command that is already there moves to the end rather than being kept twice, so the file is a set and reads in
   the order things were last used. The oldest is first and the one you just ran is last.
 * `startup.tabsh`, read once at startup. There is no batch language here, it is a list of lines and each one is run as

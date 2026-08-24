@@ -4,7 +4,6 @@ namespace Tabsh;
 
 internal static class MeasureCommands
 {
-    private const int _sampleMilliseconds = 200;
     private const int _labelWidth = 20;
 
     public static int Measure(BuiltinContext context)
@@ -41,42 +40,21 @@ internal static class MeasureCommands
         int code;
         using (var sampler = GpuSampler.Open())
         {
-            using var watcher = Watch(context, sampler);
-            using (context.Shell.Executor.Measure(measured))
+            using (new GpuWatcher(sampler, () => Alive(context)))
             {
-                code = context.Shell.ExecuteLine(CommandLineBuilder.Build(words));
-            }
+                using (context.Shell.Executor.Measure(measured))
+                {
+                    code = context.Shell.ExecuteLine(CommandLineBuilder.Build(words));
+                }
 
-            stopwatch.Stop();
-            watcher.Set();
+                stopwatch.Stop();
+            }
 
             Attribute(measured, sampler);
         }
 
         Report(context, stopwatch.Elapsed, code, measured, ownOnly);
         return code;
-    }
-
-    // a GPU counter disappears with the process that owned it, so it is read while the command is still running.
-    private static ManualResetEventSlim Watch(BuiltinContext context, GpuSampler? sampler)
-    {
-        var stop = new ManualResetEventSlim(false);
-        if (sampler == null)
-            return stop;
-
-        var thread = new Thread(() =>
-        {
-            while (!stop.Wait(_sampleMilliseconds))
-            {
-                sampler.Sample(Alive(context));
-            }
-
-            sampler.Sample(Alive(context));
-        })
-        { IsBackground = true, Name = "tabsh gpu sampler" };
-
-        thread.Start();
-        return stop;
     }
 
     private static List<uint> Alive(BuiltinContext context)

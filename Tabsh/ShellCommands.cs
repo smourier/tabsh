@@ -24,6 +24,9 @@ internal static class ShellCommands
         if (string.Equals(context.Arguments[0], "/p", StringComparison.OrdinalIgnoreCase))
             return Prompted(context);
 
+        if (string.Equals(context.Arguments[0], "/a", StringComparison.OrdinalIgnoreCase))
+            return Calculate(context);
+
         // the lexer split on spaces, so an assignment whose value contained one is put back together here.
         var text = string.Join(' ', context.Arguments);
         var equals = text.IndexOf('=');
@@ -42,6 +45,20 @@ internal static class ShellCommands
         }
 
         context.Environment.Set(text[..equals], text[(equals + 1)..]);
+        return 0;
+    }
+
+    // set /a, which is the only place in the shell where a value is worked out rather than copied.
+    private static int Calculate(BuiltinContext context)
+    {
+        var expression = string.Join(' ', context.Arguments.Skip(1));
+        if (!new Arithmetic(context.Environment).TryEvaluate(expression, out var value))
+            return context.Fail(Res.SyntaxIncorrect);
+
+        // cmd writes the answer only when the expression was typed rather than run from a script,
+        // and there are no scripts here, so it is always written.
+        context.Output.WriteLine(value.ToString(CultureInfo.InvariantCulture));
+        context.Environment.LastExitCode = value == 0 ? 1 : 0;
         return 0;
     }
 
@@ -71,7 +88,10 @@ internal static class ShellCommands
             return 0;
         }
 
-        context.Environment.Set("PATH", string.Join(' ', context.Arguments));
+        var value = string.Join(' ', context.Arguments);
+
+        // "path ;" is how cmd empties it, leaving only the current directory to search.
+        context.Environment.Set("PATH", value == ";" ? string.Empty : value);
         return 0;
     }
 
@@ -163,6 +183,10 @@ internal static class ShellCommands
         if (text.Length != 2 || !TryParseColor(text[0], out var background) || !TryParseColor(text[1], out var foreground))
             return context.Fail(Res.ColourExpected);
 
+        // the same colour twice would leave nothing readable, which cmd reports rather than does.
+        if (background == foreground)
+            return 1;
+
         Console.BackgroundColor = background;
         Console.ForegroundColor = foreground;
         return 0;
@@ -200,34 +224,6 @@ internal static class ShellCommands
         return 0;
     }
 
-    public static int Where(BuiltinContext context)
-    {
-        if (context.Arguments.Count == 0)
-            return context.Fail(Res.NameExpected);
-
-        var found = false;
-        foreach (var name in context.Arguments)
-        {
-            foreach (var match in CommandResolver.FindAll(context.Environment, name))
-            {
-                context.Output.WriteLine(match);
-                found = true;
-            }
-
-            var builtin = context.Shell.Builtins.Find(name);
-            if (builtin != null)
-            {
-                context.Output.WriteLine(string.Format(CultureInfo.CurrentCulture, Res.BuiltInMarker, builtin.Name));
-                found = true;
-            }
-        }
-
-        if (!found)
-            return context.Fail(Res.NoFilesFound);
-
-        return 0;
-    }
-
     public static int History(BuiltinContext context)
     {
         if (context.Arguments.Count > 0 && context.Arguments[0] is "-c" or "/c")
@@ -261,6 +257,14 @@ internal static class ShellCommands
                 wait = true;
             }
 
+            arguments.RemoveAt(0);
+        }
+
+        // cmd reads a first quoted word as the window title, which is why "start "" prog" is the usual spelling.
+        // Only a word that arrived in quotes can be one, or a program named in quotes would be taken for a title.
+        var consumed = context.Arguments.Count - arguments.Count;
+        if (arguments.Count > 1 && consumed < context.RawArguments.Count && context.RawArguments[consumed].StartsWith('"'))
+        {
             arguments.RemoveAt(0);
         }
 

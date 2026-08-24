@@ -5,6 +5,10 @@ internal sealed class CommandHistory
     private const int _maximumEntries = 1000;
 
     private readonly List<string> _entries = [];
+
+    // where the file is, kept from the load so that a line can be written the moment it is entered.
+    // A window closed with its cross kills the process where it stands, so nothing held back for the end survives.
+    private string? _path;
     private int _index;
     private string _pending = string.Empty;
 
@@ -29,7 +33,25 @@ internal sealed class CommandHistory
             _entries.RemoveRange(0, _entries.Count - _maximumEntries);
         }
 
+        Append(line);
         ResetCursor();
+    }
+
+    // one line, straight out, which leaves the file holding the repeats that moving an entry to the end removes.
+    // Loading reads it as a set and rewrites it, so the repeats last until the next start and no longer.
+    private void Append(string line)
+    {
+        if (_path == null)
+            return;
+
+        try
+        {
+            File.AppendAllText(_path, line + Environment.NewLine);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // a history that cannot be written is not a reason to refuse the command.
+        }
     }
 
     public void Clear()
@@ -94,15 +116,20 @@ internal sealed class CommandHistory
 
     public void Load(string path)
     {
+        // remembered before the file is read, since a history that does not exist yet still has somewhere to go.
+        _path = path;
         if (!File.Exists(path))
             return;
 
+        var read = 0;
         try
         {
             foreach (var line in File.ReadLines(path))
             {
                 if (string.IsNullOrWhiteSpace(line))
                     continue;
+
+                read++;
 
                 // the same rule the prompt adds by, since a file written before this existed may hold repeats.
                 _entries.RemoveAll(entry => string.Equals(entry, line, StringComparison.Ordinal));
@@ -112,6 +139,12 @@ internal sealed class CommandHistory
             if (_entries.Count > _maximumEntries)
             {
                 _entries.RemoveRange(0, _entries.Count - _maximumEntries);
+            }
+
+            // what the appends left behind is compacted here rather than growing a line at a time forever.
+            if (read != _entries.Count)
+            {
+                Save(path);
             }
         }
         catch (IOException)

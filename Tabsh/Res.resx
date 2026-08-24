@@ -135,6 +135,19 @@
     <value>File Not Found</value>
     <comment>what dir says when the pattern matched nothing. cmd's own wording, capitals included.</comment>
   </data>
+  <data name="OverwriteFile" xml:space="preserve">
+    <value>Overwrite {0}? </value>
+  </data>
+  <data name="DeleteFile" xml:space="preserve">
+    <value>Delete {0}? </value>
+  </data>
+  <data name="DeleteEverything" xml:space="preserve">
+    <value>{0}, are you sure? </value>
+  </data>
+  <data name="RemoveTree" xml:space="preserve">
+    <value>{0}, are you sure? </value>
+    <comment>asked before a directory goes with everything under it, the way cmd asks for rd /s.</comment>
+  </data>
   <data name="CouldNotFind" xml:space="preserve">
     <value>Could Not Find {0}</value>
     <comment>what del says. cmd's own wording, capitals included.</comment>
@@ -186,6 +199,13 @@
   <data name="NoFilesFound" xml:space="preserve">
     <value>INFO: Could not find files for the given pattern(s).</value>
     <comment>what where says when nothing matched. The wording is the one where.exe uses.</comment>
+  </data>
+  <data name="DirectoryExpected" xml:space="preserve">
+    <value>A directory is expected after /R.</value>
+  </data>
+  <data name="WhereDetailLine" xml:space="preserve">
+    <value>{0,10}   {1,-13}   {2}  {3}</value>
+    <comment>the size, date and time where.exe writes for /T, in its own column widths.</comment>
   </data>
   <data name="BuiltInMarker" xml:space="preserve">
     <value>{0}: built in</value>
@@ -577,6 +597,20 @@
     <value>  {0}{1}</value>
     <comment>a label already padded to the column width, and its value.</comment>
   </data>
+  <data name="WideDirectory" xml:space="preserve">
+    <value>[{0}]</value>
+    <comment>how dir /w says an entry is a directory, cmd's own brackets.</comment>
+  </data>
+  <data name="ShortNameLine" xml:space="preserve">
+    <value>{0,-12} {1}</value>
+  </data>
+  <data name="OwnerLine" xml:space="preserve">
+    <value>{0,-22} {1}</value>
+  </data>
+  <data name="PressAnyKey" xml:space="preserve">
+    <value>Press any key to continue . . . </value>
+    <comment>what dir /p waits on, the wording cmd uses.</comment>
+  </data>
   <data name="DirectoryEntryLine" xml:space="preserve">
     <value>{0:dd/MM/yyyy  HH:mm} {1}  {2}</value>
     <comment>one row of a dir listing. The date pattern is part of it, so a language that writes dates the other way round changes it here.</comment>
@@ -660,13 +694,13 @@
     <value>shows what TAB would offer for the rest of the line.</value>
   </data>
   <data name="DescribeCopy" xml:space="preserve">
-    <value>copies files.</value>
+    <value>copies files. /y overwrites without asking, /-y always asks.</value>
   </data>
   <data name="DescribeDel" xml:space="preserve">
-    <value>deletes files. /s recurses, /f clears the read only attribute.</value>
+    <value>deletes files. /s recurses, /f clears the read only attribute, /p asks each time, /q asks nothing, /a: selects by attribute.</value>
   </data>
   <data name="DescribeDir" xml:space="preserve">
-    <value>lists a directory. /b bare, /s recurses, /a includes hidden, /o sorts, /r shows data streams.</value>
+    <value>lists a directory. /b bare, /w and /d in columns, /p a screenful at a time, /s recurses, /a: selects by attribute, /o sorts, /t: picks the time, /l lowercases, /q owners, /x short names, /r data streams.</value>
   </data>
   <data name="DescribeEcho" xml:space="preserve">
     <value>writes its arguments.</value>
@@ -699,7 +733,7 @@
     <value>creates directories, including any missing parent.</value>
   </data>
   <data name="DescribeMove" xml:space="preserve">
-    <value>moves files and directories.</value>
+    <value>moves files and directories. /y overwrites without asking, /-y always asks.</value>
   </data>
   <data name="DescribePath" xml:space="preserve">
     <value>shows or sets PATH.</value>
@@ -717,13 +751,13 @@
     <value>writes the current directory.</value>
   </data>
   <data name="DescribeRd" xml:space="preserve">
-    <value>removes directories. /s removes the contents too.</value>
+    <value>removes directories. /s removes the contents too, /q does it without asking.</value>
   </data>
   <data name="DescribeRen" xml:space="preserve">
     <value>renames a file or a directory in place.</value>
   </data>
   <data name="DescribeSet" xml:space="preserve">
-    <value>shows or sets variables. set /p name=text reads one in.</value>
+    <value>shows or sets variables. set /p name=text reads one in, set /a works one out.</value>
   </data>
   <data name="DescribeStart" xml:space="preserve">
     <value>starts a program in a console of its own, or opens a document.</value>
@@ -741,7 +775,7 @@
     <value>shows everything the shell knows about a file or a namespace item.</value>
   </data>
   <data name="DescribeWhere" xml:space="preserve">
-    <value>shows every place a name resolves to.</value>
+    <value>shows every place a name resolves to. /R searches a tree, /Q is the exit code only, /F quotes, /T adds size and date.</value>
   </data>
   <data name="MonitorNeedsConsole" xml:space="preserve">
     <value>Watching needs a console to paint on.</value>

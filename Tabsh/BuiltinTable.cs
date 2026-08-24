@@ -46,7 +46,7 @@ internal sealed class BuiltinTable
         Add("title", Res.DescribeTitle, ShellCommands.Title);
         Add("type", Res.DescribeType, FileCommands.Type);
         Add("ver", Res.DescribeVer, ShellCommands.Version);
-        Add("where", Res.DescribeWhere, ShellCommands.Where, "which");
+        Add("where", Res.DescribeWhere, WhereCommands.Where, "which");
     }
 
     public IEnumerable<string> Names => _commands.Keys;
@@ -78,11 +78,11 @@ internal sealed class BuiltinTable
         return null;
     }
 
-    public int Run(BuiltinCommand command, IReadOnlyList<string> words, StandardHandles handles)
+    public int Run(BuiltinCommand command, IReadOnlyList<string> words, StandardHandles handles, IReadOnlyList<string>? rawWords = null)
     {
         ArgumentNullException.ThrowIfNull(command);
 
-        var context = new BuiltinContext(_shell, words, handles);
+        var context = new BuiltinContext(_shell, words, handles, rawWords);
         if (Describes(context))
         {
             context.Release();

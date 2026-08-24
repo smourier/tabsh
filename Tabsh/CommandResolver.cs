@@ -114,6 +114,7 @@ internal static class CommandResolver
     public static string? Find(ShellEnvironment environment, string name) => FindAll(environment, name).FirstOrDefault();
 
     // every match in search order, which is what "where" reports and what makes a shadowed program visible.
+    // The same file reached twice is not two matches, and PATH holding a directory twice is common enough to matter.
     public static IEnumerable<string> FindAll(ShellEnvironment environment, string name)
     {
         ArgumentNullException.ThrowIfNull(environment);
@@ -122,12 +123,16 @@ internal static class CommandResolver
         if (name.Length == 0)
             yield break;
 
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var extensions = GetPathExtensions(environment);
         if (IsPathQualified(name))
         {
             foreach (var found in Probe(FullPathOrNull(environment, name), extensions))
             {
-                yield return found;
+                if (seen.Add(found))
+                {
+                    yield return found;
+                }
             }
 
             yield break;
@@ -147,7 +152,10 @@ internal static class CommandResolver
 
             foreach (var found in Probe(candidate, extensions))
             {
-                yield return found;
+                if (seen.Add(found))
+                {
+                    yield return found;
+                }
             }
         }
     }
@@ -183,20 +191,50 @@ internal static class CommandResolver
         if (candidate == null)
             yield break;
 
-        if (File.Exists(candidate))
+        var found = OnDisk(candidate);
+        if (found != null)
         {
-            yield return candidate;
+            yield return found;
         }
 
         foreach (var extension in extensions)
         {
-            var withExtension = candidate + extension;
-            if (File.Exists(withExtension))
+            found = OnDisk(candidate + extension);
+            if (found != null)
             {
-                yield return withExtension;
+                yield return found;
             }
         }
     }
+
+    // the name the way the disk spells it, since the extension came from PATHEXT and PATHEXT is upper case.
+    // A file called tabsh.exe would otherwise be reported as tabsh.EXE, which is not a name anybody would type.
+    private static string? OnDisk(string path)
+    {
+        if (path.IndexOfAny(_wildcards) >= 0)
+            return null;
+
+        var directory = Path.GetDirectoryName(path);
+        var name = Path.GetFileName(path);
+        if (string.IsNullOrEmpty(directory) || name.Length == 0)
+            return File.Exists(path) ? path : null;
+
+        try
+        {
+            foreach (var entry in Directory.EnumerateFiles(directory, name))
+            {
+                return entry;
+            }
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            // a directory that will not be listed cannot be searched, and neither can one that is not there.
+        }
+
+        return null;
+    }
+
+    private static readonly char[] _wildcards = ['*', '?'];
 
     private static string? FullPathOrNull(ShellEnvironment environment, string name)
     {

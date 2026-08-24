@@ -201,7 +201,7 @@ internal sealed class Executor(Shell shell)
 
         var builtin = shell.Builtins.Find(name);
         if (builtin != null)
-            return shell.Builtins.Run(builtin, words, handles);
+            return shell.Builtins.Run(builtin, words, handles, command.RawWords);
 
         var resolved = CommandResolver.Resolve(shell.Environment, words, command.RawWords);
         if (resolved.Kind == ResolvedCommandKind.NotFound)

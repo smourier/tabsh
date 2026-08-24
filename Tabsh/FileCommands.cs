@@ -1,6 +1,6 @@
 namespace Tabsh;
 
-internal static class FileCommands
+internal static partial class FileCommands
 {
     public static int List(BuiltinContext context)
     {
@@ -27,7 +27,44 @@ internal static class FileCommands
                     break;
 
                 case 'A':
+                    options.Attributes = option[1..].TrimStart(':');
                     options.All = true;
+                    break;
+
+                case 'T':
+                    var field = option[1..].TrimStart(':');
+                    options.TimeField = field.Length > 0 ? char.ToUpperInvariant(field[0]) : 'W';
+                    break;
+
+                case 'W':
+                    options.Wide = true;
+                    break;
+
+                case 'D':
+                    options.Wide = true;
+                    options.DownColumns = true;
+                    break;
+
+                case 'P':
+                    options.Pause = true;
+                    break;
+
+                case 'L':
+                    options.Lower = true;
+                    break;
+
+                case 'Q':
+                    options.Owner = true;
+                    break;
+
+                case 'X':
+                    options.ShortNames = true;
+                    break;
+
+                // thousand separators, the long list format and four digit years are what this already does.
+                case 'C':
+                case 'N':
+                case '4':
                     break;
 
                 case 'R':
@@ -173,7 +210,7 @@ internal static class FileCommands
         try
         {
             entries = new DirectoryInfo(directory).EnumerateFileSystemInfos(pattern)
-                .Where(e => options.All || (e.Attributes & (FileAttributes.Hidden | FileAttributes.System)) == 0)
+                .Where(e => Selected(e, options))
                 .ToList();
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
@@ -181,46 +218,39 @@ internal static class FileCommands
             return context.Fail(exception.Message);
         }
 
-        Sort(entries, options.Order);
+        Sort(entries, options.Order, options.TimeField);
 
+        var pager = new ScreenPager(context, options.Pause);
         if (options.Bare)
         {
             foreach (var entry in entries)
             {
-                context.Output.WriteLine(options.Recurse ? entry.FullName : entry.Name);
+                pager.WriteLine(Cased(options.Recurse ? entry.FullName : entry.Name, options));
             }
+        }
+        else if (options.Wide)
+        {
+            WriteHeader(context, directory);
+            WriteWide(pager, entries, options);
+            WriteSummary(context, entries, directory);
         }
         else
         {
             WriteHeader(context, directory);
 
-            long bytes = 0;
-            var files = 0;
-            var directories = 0;
             foreach (var entry in entries)
             {
                 var isDirectory = (entry.Attributes & FileAttributes.Directory) != 0;
                 var size = Marker(entry, isDirectory);
-                context.Output.WriteLine(string.Format(CultureInfo.CurrentCulture, Res.DirectoryEntryLine, entry.LastWriteTime, size, Name(entry)));
+                pager.WriteLine(string.Format(CultureInfo.CurrentCulture, Res.DirectoryEntryLine, Stamp(entry, options.TimeField), size, Decorate(entry, options)));
 
                 if (options.Streams)
                 {
                     WriteStreams(context, entry);
                 }
-
-                if (isDirectory)
-                {
-                    directories++;
-                }
-                else
-                {
-                    files++;
-                    bytes += entry is FileInfo counted ? counted.Length : 0;
-                }
             }
 
-            context.Output.WriteLine(string.Format(CultureInfo.CurrentCulture, Res.FileCountSummary, files, bytes));
-            context.Output.WriteLine(string.Format(CultureInfo.CurrentCulture, Res.DirectoryCountSummary, directories, FreeSpace(directory)));
+            WriteSummary(context, entries, directory);
         }
 
         if (!options.Recurse)
@@ -233,6 +263,105 @@ internal static class FileCommands
 
         return 0;
     }
+
+    private static void WriteSummary(BuiltinContext context, List<FileSystemInfo> entries, string directory)
+    {
+        long bytes = 0;
+        var files = 0;
+        var directories = 0;
+        foreach (var entry in entries)
+        {
+            if ((entry.Attributes & FileAttributes.Directory) != 0)
+            {
+                directories++;
+            }
+            else
+            {
+                files++;
+                bytes += entry is FileInfo counted ? counted.Length : 0;
+            }
+        }
+
+        context.Output.WriteLine(string.Format(CultureInfo.CurrentCulture, Res.FileCountSummary, files, bytes));
+        context.Output.WriteLine(string.Format(CultureInfo.CurrentCulture, Res.DirectoryCountSummary, directories, FreeSpace(directory)));
+    }
+
+    // /w and /d, names in columns with a directory in brackets. /w reads across the rows, /d down the columns.
+    private static void WriteWide(ScreenPager pager, List<FileSystemInfo> entries, ListOptions options)
+    {
+        if (entries.Count == 0)
+            return;
+
+        var names = new List<string>();
+        foreach (var entry in entries)
+        {
+            var name = Cased(entry.Name, options);
+            names.Add((entry.Attributes & FileAttributes.Directory) != 0 ? string.Format(CultureInfo.CurrentCulture, Res.WideDirectory, name) : name);
+        }
+
+        var widest = 0;
+        foreach (var name in names)
+        {
+            widest = Math.Max(widest, name.Length);
+        }
+
+        var width = Math.Max(Console.IsOutputRedirected ? _defaultWidth : Console.WindowWidth, widest + _wideGap + 1);
+        var columns = Math.Max(1, (width - 1) / (widest + _wideGap));
+        var rows = (names.Count + columns - 1) / columns;
+
+        for (var row = 0; row < rows; row++)
+        {
+            var line = new StringBuilder();
+            for (var column = 0; column < columns; column++)
+            {
+                var index = options.DownColumns ? column * rows + row : row * columns + column;
+                if (index >= names.Count)
+                    continue;
+
+                line.Append(names[index].PadRight(widest + _wideGap));
+            }
+
+            pager.WriteLine(line.ToString().TrimEnd());
+        }
+    }
+
+    // cmd's /a selectors, with D for a directory on top of the file attributes del understands.
+    private static bool Selected(FileSystemInfo entry, ListOptions options)
+    {
+        if (options.Attributes.Length > 0)
+            return HasAttributes(entry.Attributes, options.Attributes);
+
+        return options.All || (entry.Attributes & (FileAttributes.Hidden | FileAttributes.System)) == 0;
+    }
+
+    private static DateTime Stamp(FileSystemInfo entry, char field) => field switch
+    {
+        'C' => entry.CreationTime,
+        'A' => entry.LastAccessTime,
+        _ => entry.LastWriteTime,
+    };
+
+    private static string Cased(string text, ListOptions options) => options.Lower ? text.ToLower(CultureInfo.CurrentCulture) : text;
+
+    // the name, and whatever the switches asked to be shown beside it.
+    private static string Decorate(FileSystemInfo entry, ListOptions options)
+    {
+        var name = Cased(Name(entry), options);
+        if (options.ShortNames)
+        {
+            name = string.Format(CultureInfo.CurrentCulture, Res.ShortNameLine, ShortName(entry.FullName), name);
+        }
+
+        if (options.Owner)
+        {
+            name = string.Format(CultureInfo.CurrentCulture, Res.OwnerLine, OwnerOf(entry.FullName), name);
+        }
+
+        return name;
+    }
+
+    private const int _defaultWidth = 80;
+    private const int _wideGap = 2;
 
     // the size column, or what stands in for it: a directory says so, and a reparse point says which kind it is,
     // because a junction and a symbolic link are not the same thing however alike they look here.
@@ -330,7 +459,7 @@ internal static class FileCommands
         }
     }
 
-    private static void Sort(List<FileSystemInfo> entries, string order)
+    private static void Sort(List<FileSystemInfo> entries, string order, char timeField)
     {
         var descending = order.StartsWith('-');
         var key = descending ? order[1..] : order;
@@ -338,10 +467,11 @@ internal static class FileCommands
         Comparison<FileSystemInfo> comparison = key.ToUpperInvariant() switch
         {
             "S" => (a, b) => SizeOf(a).CompareTo(SizeOf(b)),
-            "D" => (a, b) => a.LastWriteTime.CompareTo(b.LastWriteTime),
+            "D" => (a, b) => Stamp(a, timeField).CompareTo(Stamp(b, timeField)),
             "E" => (a, b) => string.Compare(a.Extension, b.Extension, StringComparison.OrdinalIgnoreCase),
+            "N" => (a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase),
 
-            // the default puts directories first, which is the order that makes a listing useful for getting around.
+            // "G" and the default both put directories first, which is what makes a listing useful for getting around.
             _ => (a, b) =>
             {
                 var byKind = IsDirectory(b).CompareTo(IsDirectory(a));
@@ -351,6 +481,40 @@ internal static class FileCommands
 
         entries.Sort(descending ? (a, b) => comparison(b, a) : comparison);
     }
+
+    // the 8.3 name Windows keeps beside the long one, which is the only name some very old tools will take.
+    private static string ShortName(string path)
+    {
+        var buffer = new char[_maximumPath];
+        var length = GetShortPathNameW(path, buffer, (uint)buffer.Length);
+        if (length == 0 || length > buffer.Length)
+            return string.Empty;
+
+        return Path.GetFileName(new string(buffer, 0, (int)length));
+    }
+
+    // the account the file belongs to, which the shell already knows and nothing else here has to work out.
+    private static string OwnerOf(string path)
+    {
+        try
+        {
+            using var item = ShellItem.FromParsingName(path, throwOnError: false);
+            // the fast store does not carry the owner, which is one of the values a handler has to be asked for.
+            if (item != null && item.TryGetPropertyValue<string>(ShellN.PropertyKeys.System.FileOwner, ShellN.GETPROPERTYSTOREFLAGS.GPS_DEFAULT, out var owner))
+                return owner ?? string.Empty;
+
+            return string.Empty;
+        }
+        catch (Exception exception) when (exception is COMException or ArgumentException)
+        {
+            return string.Empty;
+        }
+    }
+
+    private const int _maximumPath = 260;
+
+    [LibraryImport("kernel32", EntryPoint = "GetShortPathNameW", StringMarshalling = StringMarshalling.Utf16)]
+    private static partial uint GetShortPathNameW(string lpszLongPath, [Out] char[] lpszShortPath, uint cchBuffer);
 
     private static bool IsDirectory(FileSystemInfo entry) => (entry.Attributes & FileAttributes.Directory) != 0;
 
@@ -373,6 +537,13 @@ internal static class FileCommands
 
             foreach (var match in matches)
             {
+                if (matches.Count > 1)
+                {
+                    context.Output.WriteLine();
+                    context.Output.WriteLine(Path.GetFileName(match));
+                    context.Output.WriteLine();
+                }
+
                 try
                 {
                     using var reader = new StreamReader(match, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
@@ -398,9 +569,49 @@ internal static class FileCommands
 
     private static int Transfer(BuiltinContext context, bool move)
     {
-        var arguments = context.Arguments.Where(a => !a.StartsWith('/')).ToList();
+        var overwrite = (bool?)null;
+        var arguments = new List<string>();
+        foreach (var argument in context.Arguments)
+        {
+            if (!argument.StartsWith('/'))
+            {
+                arguments.Add(argument);
+                continue;
+            }
+
+            if (string.Equals(argument, _noOverwriteSwitch, StringComparison.OrdinalIgnoreCase))
+            {
+                overwrite = false;
+                continue;
+            }
+
+            switch (char.ToUpperInvariant(argument.Length > 1 ? argument[1] : ' '))
+            {
+                case 'Y':
+                    overwrite = true;
+                    break;
+
+                // what cmd does with these is either a hint or a thing this copy already does.
+                case 'A':
+                case 'B':
+                case 'D':
+                case 'L':
+                case 'N':
+                case 'V':
+                case 'Z':
+                    break;
+
+                default:
+                    return context.Fail(string.Format(CultureInfo.CurrentCulture, Res.InvalidSwitch, argument));
+            }
+        }
+
         if (arguments.Count < 2)
             return context.Fail(Res.SyntaxIncorrect);
+
+        // "copy a+b c" joins the sources into the destination, which is the one thing copy does that move does not.
+        if (!move && arguments.Count == 2 && arguments[0].Contains('+', StringComparison.Ordinal))
+            return Join(context, arguments[0], arguments[1], overwrite);
 
         var destination = ShellPath.Resolve(arguments[^1], context.Environment.CurrentDirectory);
         var intoDirectory = Directory.Exists(destination) || arguments.Count > 2;
@@ -415,6 +626,9 @@ internal static class FileCommands
             foreach (var source in matches)
             {
                 var target = intoDirectory ? Path.Combine(destination, Path.GetFileName(source)) : destination;
+                if (!Allowed(context, target, overwrite))
+                    continue;
+
                 try
                 {
                     if (move)
@@ -451,47 +665,135 @@ internal static class FileCommands
         if (context.Arguments.Count < 2)
             return context.Fail(Res.SyntaxIncorrect);
 
-        var source = ShellPath.Resolve(context.Arguments[0], context.Environment.CurrentDirectory);
-        var directory = Path.GetDirectoryName(source);
-        if (string.IsNullOrEmpty(directory))
-            return context.Fail(Res.SyntaxIncorrect);
+        var matches = Expand(context.Environment, context.Arguments[0], includeDirectories: true);
+        if (matches.Count == 0)
+            return context.Fail(string.Format(CultureInfo.CurrentCulture, Res.FileNotFound, context.Arguments[0]));
 
         // the second argument of a rename is a name, never a path, which is the one thing that separates it from move.
-        var target = Path.Combine(directory, Path.GetFileName(context.Arguments[1]));
-        try
+        var pattern = Path.GetFileName(context.Arguments[1]);
+        var code = 0;
+        foreach (var source in matches)
         {
-            if (Directory.Exists(source))
+            var directory = Path.GetDirectoryName(source);
+            if (string.IsNullOrEmpty(directory))
             {
-                Directory.Move(source, target);
-            }
-            else
-            {
-                File.Move(source, target);
+                code = context.Fail(Res.SyntaxIncorrect);
+                continue;
             }
 
-            return 0;
+            var target = Path.Combine(directory, Rewrite(Path.GetFileName(source), pattern));
+            try
+            {
+                if (Directory.Exists(source))
+                {
+                    Directory.Move(source, target);
+                }
+                else
+                {
+                    File.Move(source, target);
+                }
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                code = context.Fail(exception.Message);
+            }
         }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+
+        return code;
+    }
+
+    // "*.txt" to "*.bak" and its like, where a "*" in the new name takes the rest of that half of the old name,
+    // and a "?" takes one character of it. The stem and the extension are matched apart, which is how cmd reads them.
+    private static string Rewrite(string name, string pattern)
+    {
+        if (pattern.IndexOfAny(['*', '?']) < 0)
+            return pattern;
+
+        var dot = pattern.LastIndexOf('.');
+        var nameDot = name.LastIndexOf('.');
+        var stem = Apply(dot < 0 ? name : name[..(nameDot < 0 ? name.Length : nameDot)], dot < 0 ? pattern : pattern[..dot]);
+        if (dot < 0)
+            return stem;
+
+        var extension = Apply(nameDot < 0 ? string.Empty : name[(nameDot + 1)..], pattern[(dot + 1)..]);
+        return extension.Length == 0 ? stem : stem + "." + extension;
+    }
+
+    private static string Apply(string source, string pattern)
+    {
+        var built = new StringBuilder();
+        var at = 0;
+        foreach (var c in pattern)
         {
-            return context.Fail(exception.Message);
+            if (c == '*')
+            {
+                built.Append(source.AsSpan(Math.Min(at, source.Length)));
+                at = source.Length;
+                continue;
+            }
+
+            if (c == '?')
+            {
+                if (at < source.Length)
+                {
+                    built.Append(source[at]);
+                    at++;
+                }
+
+                continue;
+            }
+
+            built.Append(c);
+            if (at < source.Length)
+            {
+                at++;
+            }
         }
+
+        return built.ToString();
     }
 
     public static int Delete(BuiltinContext context)
     {
         var force = false;
         var recurse = false;
+        var prompt = false;
+        var quiet = false;
+        string? attributes = null;
         var patterns = new List<string>();
         foreach (var argument in context.Arguments)
         {
-            if (argument.StartsWith('/'))
+            if (!argument.StartsWith('/'))
             {
-                force = force || string.Equals(argument, "/f", StringComparison.OrdinalIgnoreCase);
-                recurse = recurse || string.Equals(argument, "/s", StringComparison.OrdinalIgnoreCase);
+                patterns.Add(argument);
                 continue;
             }
 
-            patterns.Add(argument);
+            switch (char.ToUpperInvariant(argument.Length > 1 ? argument[1] : ' '))
+            {
+                case 'F':
+                    force = true;
+                    break;
+
+                case 'S':
+                    recurse = true;
+                    break;
+
+                case 'P':
+                    prompt = true;
+                    break;
+
+                case 'Q':
+                    quiet = true;
+                    break;
+
+                case 'A':
+                    attributes = argument[2..].TrimStart(':');
+                    break;
+
+                default:
+                    return context.Fail(string.Format(CultureInfo.CurrentCulture, Res.InvalidSwitch, argument));
+            }
         }
 
         if (patterns.Count == 0)
@@ -512,8 +814,18 @@ internal static class FileCommands
                 continue;
             }
 
+            // a pattern that names everything is the one worth asking about, which is the question cmd asks.
+            if (!quiet && IsEverything(pattern) && !Agreed(context, string.Format(CultureInfo.CurrentCulture, Res.DeleteEverything, pattern)))
+                continue;
+
             foreach (var match in matches)
             {
+                if (attributes != null && !HasAttributes(match, attributes))
+                    continue;
+
+                if (prompt && !Agreed(context, string.Format(CultureInfo.CurrentCulture, Res.DeleteFile, match)))
+                    continue;
+
                 try
                 {
                     if (force)
@@ -556,16 +868,29 @@ internal static class FileCommands
     public static int RemoveDirectory(BuiltinContext context)
     {
         var recurse = false;
+        var quiet = false;
         var targets = new List<string>();
         foreach (var argument in context.Arguments)
         {
-            if (argument.StartsWith('/'))
+            if (!argument.StartsWith('/'))
             {
-                recurse = recurse || string.Equals(argument, "/s", StringComparison.OrdinalIgnoreCase);
+                targets.Add(argument);
                 continue;
             }
 
-            targets.Add(argument);
+            switch (char.ToUpperInvariant(argument.Length > 1 ? argument[1] : ' '))
+            {
+                case 'S':
+                    recurse = true;
+                    break;
+
+                case 'Q':
+                    quiet = true;
+                    break;
+
+                default:
+                    return context.Fail(string.Format(CultureInfo.CurrentCulture, Res.InvalidSwitch, argument));
+            }
         }
 
         if (targets.Count == 0)
@@ -573,9 +898,22 @@ internal static class FileCommands
 
         foreach (var target in targets)
         {
+            // a tree goes with everything under it, which is the one thing cmd stops to ask about.
+            if (recurse && !quiet && !Agreed(context, string.Format(CultureInfo.CurrentCulture, Res.RemoveTree, target)))
+                continue;
+
+            var path = ShellPath.Resolve(target, context.Environment.CurrentDirectory);
             try
             {
-                Directory.Delete(ShellPath.Resolve(target, context.Environment.CurrentDirectory), recurse);
+                if (recurse)
+                {
+                    DeleteTree(path);
+                }
+                else
+                {
+                    Writable(path);
+                    Directory.Delete(path);
+                }
             }
             catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException)
             {
@@ -585,6 +923,177 @@ internal static class FileCommands
 
         return 0;
     }
+
+    // cmd's rd /s takes a read only file with it rather than stopping on one, and Directory.Delete does not.
+    // Git marks its pack and commit graph files read only, so deleting a repository stopped at the first of them.
+    private static void DeleteTree(string directory)
+    {
+        foreach (var file in Directory.EnumerateFiles(directory))
+        {
+            Writable(file);
+            File.Delete(file);
+        }
+
+        foreach (var child in Directory.EnumerateDirectories(directory))
+        {
+            // a link is unlinked and never walked into, or removing a junction would empty what it points at.
+            if ((File.GetAttributes(child) & FileAttributes.ReparsePoint) != 0)
+            {
+                Writable(child);
+                Directory.Delete(child);
+                continue;
+            }
+
+            DeleteTree(child);
+        }
+
+        Writable(directory);
+        Directory.Delete(directory);
+    }
+
+    private static void Writable(string path)
+    {
+        var attributes = File.GetAttributes(path);
+        if ((attributes & FileAttributes.ReadOnly) != 0)
+        {
+            File.SetAttributes(path, attributes & ~FileAttributes.ReadOnly);
+        }
+    }
+
+    private static int Join(BuiltinContext context, string sources, string destination, bool? overwrite)
+    {
+        var target = ShellPath.Resolve(destination, context.Environment.CurrentDirectory);
+        if (!Allowed(context, target, overwrite))
+            return 0;
+
+        var parts = new List<string>();
+        foreach (var source in sources.Split('+', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            var matches = Expand(context.Environment, source, includeDirectories: false);
+            if (matches.Count == 0)
+                return context.Fail(string.Format(CultureInfo.CurrentCulture, Res.FileNotFound, source));
+
+            parts.AddRange(matches);
+        }
+
+        try
+        {
+            // written to a new file rather than appended to, since one of the parts may be the destination itself.
+            var joined = Path.GetTempFileName();
+            using (var output = new FileStream(joined, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                foreach (var part in parts)
+                {
+                    using var input = new FileStream(part, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+                    input.CopyTo(output);
+                }
+            }
+
+            File.Move(joined, target, overwrite: true);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            return context.Fail(exception.Message);
+        }
+
+        context.Output.WriteLine(string.Format(CultureInfo.CurrentCulture, Res.FilesCopied, parts.Count));
+        return 0;
+    }
+
+    // cmd asks before it overwrites a file or removes a tree, and a shell that does not ask loses work cmd would keep.
+    // With no console there is nobody to ask, which is the case cmd itself documents as going ahead.
+    private static bool Agreed(BuiltinContext context, string question)
+    {
+        if (Console.IsInputRedirected || Console.IsOutputRedirected || !context.WritesToConsole)
+            return true;
+
+        context.Output.Write(question);
+        context.Output.Flush();
+
+        while (true)
+        {
+            var key = Console.ReadKey(intercept: true);
+            var answer = key.KeyChar.ToString();
+            if (string.Equals(answer, Res.YesKey, StringComparison.CurrentCultureIgnoreCase))
+            {
+                context.Output.WriteLine(Res.YesKey);
+                return true;
+            }
+
+            if (string.Equals(answer, Res.NoKey, StringComparison.CurrentCultureIgnoreCase) || key.Key is ConsoleKey.Escape or ConsoleKey.Enter)
+            {
+                context.Output.WriteLine(Res.NoKey);
+                return false;
+            }
+        }
+    }
+
+    // an existing destination is the only one worth a question, and /y or /-y answers it in advance.
+    private static bool Allowed(BuiltinContext context, string target, bool? overwrite)
+    {
+        if (overwrite == true || !File.Exists(target))
+            return true;
+
+        if (overwrite == false)
+            return false;
+
+        return Agreed(context, string.Format(CultureInfo.CurrentCulture, Res.OverwriteFile, target));
+    }
+
+    // "*" and "*.*" are the patterns that mean the lot, which is what cmd stops for.
+    private static bool IsEverything(string pattern)
+    {
+        var name = Path.GetFileName(pattern);
+        return name is "*" or "*.*";
+    }
+
+    private static bool HasAttributes(string path, string selectors)
+    {
+        try
+        {
+            return HasAttributes(File.GetAttributes(path), selectors);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            return false;
+        }
+    }
+
+    // cmd's selectors, D R H A S I L O, each of which may be turned around by a leading "-".
+    private static bool HasAttributes(FileAttributes actual, string selectors)
+    {
+        var negate = false;
+        foreach (var selector in selectors)
+        {
+            if (selector == '-')
+            {
+                negate = true;
+                continue;
+            }
+
+            var wanted = char.ToUpperInvariant(selector) switch
+            {
+                'D' => FileAttributes.Directory,
+                'R' => FileAttributes.ReadOnly,
+                'S' => FileAttributes.System,
+                'H' => FileAttributes.Hidden,
+                'A' => FileAttributes.Archive,
+                'I' => FileAttributes.NotContentIndexed,
+                'L' => FileAttributes.ReparsePoint,
+                'O' => FileAttributes.Offline,
+                _ => (FileAttributes)0,
+            };
+
+            if (wanted != 0 && (actual & wanted) != 0 == negate)
+                return false;
+
+            negate = false;
+        }
+
+        return true;
+    }
+
+    private const string _noOverwriteSwitch = "/-y";
 
     private static List<string> Expand(ShellEnvironment environment, string pattern, bool includeDirectories)
     {

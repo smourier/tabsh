@@ -191,7 +191,12 @@ internal sealed class Shell
 
     public int Run()
     {
-        Editor.History.Load(HistoryPath);
+        // a script arriving on a pipe is not somebody's typing, so it neither reads the history nor writes to it.
+        var typed = !Console.IsInputRedirected;
+        if (typed)
+        {
+            Editor.History.Load(HistoryPath);
+        }
 
         Console.CancelKeyPress += OnInterrupt;
 
@@ -216,7 +221,11 @@ internal sealed class Shell
         }
         finally
         {
-            Editor.History.Save(HistoryPath);
+            // the entries went out one at a time as they were entered, and this is what removes their repeats.
+            if (typed)
+            {
+                Editor.History.Save(HistoryPath);
+            }
         }
 
         return ExitCode;
