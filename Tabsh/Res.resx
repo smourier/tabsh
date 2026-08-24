@@ -1,0 +1,764 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="CommandNotRecognized" xml:space="preserve">
+    <value>'{0}' is not recognized as an internal or external command, operable program or batch file.</value>
+    <comment>cmd's own wording, kept word for word because scripts match on it.</comment>
+  </data>
+  <data name="SyntaxIncorrect" xml:space="preserve">
+    <value>The syntax of the command is incorrect.</value>
+    <comment>cmd's own wording, kept word for word.</comment>
+  </data>
+  <data name="PathNotFound" xml:space="preserve">
+    <value>The system cannot find the path specified: {0}</value>
+  </data>
+  <data name="FileNotFound" xml:space="preserve">
+    <value>The system cannot find the file specified: {0}</value>
+  </data>
+  <data name="FileNotFoundShort" xml:space="preserve">
+    <value>File Not Found</value>
+    <comment>what dir says when the pattern matched nothing. cmd's own wording, capitals included.</comment>
+  </data>
+  <data name="CouldNotFind" xml:space="preserve">
+    <value>Could Not Find {0}</value>
+    <comment>what del says. cmd's own wording, capitals included.</comment>
+  </data>
+  <data name="InvalidBase64" xml:space="preserve">
+    <value>Not valid base64: {0}</value>
+  </data>
+  <data name="InvalidWidth" xml:space="preserve">
+    <value>Invalid width: {0}</value>
+  </data>
+  <data name="OneInputExpected" xml:space="preserve">
+    <value>Only one input can be written to a file.</value>
+  </data>
+  <data name="InvalidCount" xml:space="preserve">
+    <value>Invalid count: {0}</value>
+  </data>
+  <data name="CountTooLarge" xml:space="preserve">
+    <value>At most {0} at a time.</value>
+  </data>
+  <data name="InvalidFormat" xml:space="preserve">
+    <value>Invalid format: {0}</value>
+  </data>
+  <data name="InvalidAlgorithm" xml:space="preserve">
+    <value>Invalid algorithm: {0}. One of: {1}</value>
+  </data>
+  <data name="AlgorithmNotSupported" xml:space="preserve">
+    <value>{0} is not supported by this Windows.</value>
+    <comment>the SHA3 family, which needs a recent enough Windows to be present at all.</comment>
+  </data>
+  <data name="InvalidSwitch" xml:space="preserve">
+    <value>Invalid switch - {0}</value>
+    <comment>cmd's own wording, dash included.</comment>
+  </data>
+  <data name="NotAFileDescriptor" xml:space="preserve">
+    <value>'{0}' is not a file descriptor.</value>
+  </data>
+  <data name="VariableNotDefined" xml:space="preserve">
+    <value>Environment variable {0} not defined.</value>
+  </data>
+  <data name="NotAnAlias" xml:space="preserve">
+    <value>'{0}' is not an alias.</value>
+  </data>
+  <data name="ColourExpected" xml:space="preserve">
+    <value>A colour is two hexadecimal digits, background then foreground.</value>
+  </data>
+  <data name="NameExpected" xml:space="preserve">
+    <value>A name is expected.</value>
+  </data>
+  <data name="NoFilesFound" xml:space="preserve">
+    <value>INFO: Could not find files for the given pattern(s).</value>
+    <comment>what where says when nothing matched. The wording is the one where.exe uses.</comment>
+  </data>
+  <data name="BuiltInMarker" xml:space="preserve">
+    <value>{0}: built in</value>
+    <comment>how where reports a name the shell handles itself rather than a file on disk.</comment>
+  </data>
+  <data name="UnexpectedToken" xml:space="preserve">
+    <value>'{0}' was not expected here.</value>
+  </data>
+  <data name="CommandExpectedBefore" xml:space="preserve">
+    <value>a command was expected before '{0}'.</value>
+  </data>
+  <data name="CommandExpectedAfterPipe" xml:space="preserve">
+    <value>a command was expected after '|'.</value>
+  </data>
+  <data name="ClosingParenthesisExpected" xml:space="preserve">
+    <value>')' was expected.</value>
+  </data>
+  <data name="FileNameExpectedAfter" xml:space="preserve">
+    <value>a file name was expected after '{0}'.</value>
+  </data>
+  <data name="EndOfLine" xml:space="preserve">
+    <value>end of line</value>
+    <comment>how the end of the line is named inside a syntax message, where a word would otherwise be quoted.</comment>
+  </data>
+  <data name="DirectoryMarker" xml:space="preserve">
+    <value>&lt;DIR&gt;</value>
+    <comment>what dir writes in the size column for a directory.</comment>
+  </data>
+  <data name="ItemMarker" xml:space="preserve">
+    <value>&lt;ITEM&gt;</value>
+    <comment>what dir writes for a shell item that is neither a folder to enter nor a file with a size, the Control Panel launcher on the desktop and its like.</comment>
+  </data>
+  <data name="JunctionMarker" xml:space="preserve">
+    <value>&lt;JUNCTION&gt;</value>
+    <comment>what dir writes for a directory junction, cmd's own wording.</comment>
+  </data>
+  <data name="SymlinkMarker" xml:space="preserve">
+    <value>&lt;SYMLINK&gt;</value>
+    <comment>a symbolic link to a file, cmd's own wording.</comment>
+  </data>
+  <data name="SymlinkDirectoryMarker" xml:space="preserve">
+    <value>&lt;SYMLINKD&gt;</value>
+    <comment>a symbolic link to a directory, cmd's own wording. The D is part of it.</comment>
+  </data>
+  <data name="LinkTargetSuffix" xml:space="preserve">
+    <value> [{0}]</value>
+    <comment>where a link points, written after its name the way dir writes it.</comment>
+  </data>
+  <data name="StreamLine" xml:space="preserve">
+    <value>{0,37:N0}  {1}</value>
+    <comment>one alternate data stream under the entry it belongs to. The width puts its size under the size column above.</comment>
+  </data>
+  <data name="ShellEntryLine" xml:space="preserve">
+    <value>{0,17} {1}  {2}</value>
+    <comment>one entry of a shell folder. The date is blank for a virtual place, which has none to give.</comment>
+  </data>
+  <data name="PropertiesOf" xml:space="preserve">
+    <value> Properties of {0}</value>
+  </data>
+  <data name="PropertyLine" xml:space="preserve">
+    <value>{0}  {1}</value>
+    <comment>one property of an item. The name is padded by the caller, which knows the column width.</comment>
+  </data>
+  <data name="PropertyCount" xml:space="preserve">
+    <value>{0,16} value(s)</value>
+    <comment>the summary of a props listing, counting only the properties that had something to say.</comment>
+  </data>
+  <data name="NoMatch" xml:space="preserve">
+    <value>No file or item matches: {0}</value>
+    <comment>reported when a name written as a pattern found nothing, on disk or in the namespace.</comment>
+  </data>
+  <data name="NoProperties" xml:space="preserve">
+    <value>No property store: {0}</value>
+    <comment>reported when an item refuses to open its properties at all, which a few virtual places do.</comment>
+  </data>
+  <data name="RawPropertyKey" xml:space="preserve">
+    <value>{{{0}}} {1}</value>
+    <comment>a property key no handler has named, written as its format identifier and its number.</comment>
+  </data>
+  <data name="ShellItemCount" xml:space="preserve">
+    <value>{0,16} item(s)</value>
+    <comment>the summary of a shell folder listing, where there are no bytes or free space to report.</comment>
+  </data>
+  <data name="VolumeInDrive" xml:space="preserve">
+    <value> Volume in drive {0} is {1}</value>
+  </data>
+  <data name="DirectoryOf" xml:space="preserve">
+    <value> Directory of {0}</value>
+  </data>
+  <data name="FileCountSummary" xml:space="preserve">
+    <value>{0,16} File(s) {1,15:N0} bytes</value>
+    <comment>the alignments line the two summary rows up with each other, keep them.</comment>
+  </data>
+  <data name="DirectoryCountSummary" xml:space="preserve">
+    <value>{0,16} Dir(s) {1,16:N0} bytes free</value>
+    <comment>the alignments line the two summary rows up with each other, keep them.</comment>
+  </data>
+  <data name="FilesCopied" xml:space="preserve">
+    <value>{0,8} file(s) copied.</value>
+  </data>
+  <data name="FilesMoved" xml:space="preserve">
+    <value>{0,8} file(s) moved.</value>
+  </data>
+  <data name="HelpHeader" xml:space="preserve">
+    <value>Built in commands, everything else is looked for on PATH.</value>
+  </data>
+  <data name="HelpTab" xml:space="preserve">
+    <value>TAB cycles through the names that match, directories first and with a trailing separator.</value>
+  </data>
+  <data name="HelpShiftTab" xml:space="preserve">
+    <value>Shift+TAB goes back through them, ESC puts back what you had typed.</value>
+  </data>
+  <data name="HelpAutoCd" xml:space="preserve">
+    <value>A line that is nothing but the name of a directory changes to it.</value>
+  </data>
+  <data name="OneProcessRunning" xml:space="preserve">
+    <value>One process is still running:</value>
+  </data>
+  <data name="ProcessesRunning" xml:space="preserve">
+    <value>{0} processes are still running:</value>
+  </data>
+  <data name="TerminatePrompt" xml:space="preserve">
+    <value>Terminate all of them (Y/N)? </value>
+    <comment>the two letters offered here have to be the ones in YesKey and NoKey. The trailing space is deliberate.</comment>
+  </data>
+  <data name="YesKey" xml:space="preserve">
+    <value>Y</value>
+    <comment>the key that answers yes, and what is echoed when it is pressed. One character.</comment>
+  </data>
+  <data name="NoKey" xml:space="preserve">
+    <value>N</value>
+    <comment>the key that answers no, and what is echoed for any other answer. One character.</comment>
+  </data>
+  <data name="LabelConsoleInputMode" xml:space="preserve">
+    <value>Input mode</value>
+  </data>
+  <data name="LabelConsoleOutputMode" xml:space="preserve">
+    <value>Output mode</value>
+  </data>
+  <data name="LabelVirtualTerminal" xml:space="preserve">
+    <value>Virtual terminal</value>
+  </data>
+  <data name="LabelCodePage" xml:space="preserve">
+    <value>Code page</value>
+  </data>
+  <data name="ConsoleMode" xml:space="preserve">
+    <value>0x{0:X4}</value>
+  </data>
+  <data name="CodePageLine" xml:space="preserve">
+    <value>{0} in, {1} out</value>
+  </data>
+  <data name="VirtualTerminalOn" xml:space="preserve">
+    <value>on, escape sequences are obeyed</value>
+  </data>
+  <data name="VirtualTerminalOff" xml:space="preserve">
+    <value>refused, escape sequences will be printed as text</value>
+  </data>
+  <data name="VirtualTerminalHint" xml:space="preserve">
+    <value>This console does not support it. A console with "Use legacy console" ticked never will, and neither does one older than Windows 10. Untick it in the console properties and open a new window.</value>
+  </data>
+  <data name="NoConsole" xml:space="preserve">
+    <value>There is no console here, the output is going somewhere else.</value>
+  </data>
+  <data name="DescribeConsole" xml:space="preserve">
+    <value>shows the console modes, which is what decides whether colour works.</value>
+  </data>
+  <data name="TreeCannotBeKilled" xml:space="preserve">
+    <value>Only the command itself can be ended here, anything it started will keep running.</value>
+    <comment>shown when there is no job behind the command, so the list above cannot be the whole story.</comment>
+  </data>
+  <data name="ProcessUnreadable" xml:space="preserve">
+    <value>(nothing could be read)</value>
+  </data>
+  <data name="ProcessElevated" xml:space="preserve">
+    <value>(running elevated, cannot be read from here)</value>
+  </data>
+  <data name="ProcessEnded" xml:space="preserve">
+    <value>(already ended)</value>
+  </data>
+  <data name="ProcessOpenFailed" xml:space="preserve">
+    <value>(cannot be opened, error {0})</value>
+  </data>
+  <data name="ProductHeadline" xml:space="preserve">
+    <value>{0} {1} [Version {2}]</value>
+    <comment>company, product and version, the shape cmd's own first line has.</comment>
+  </data>
+  <data name="BannerHeadline" xml:space="preserve">
+    <value>{0} [Version {1}]</value>
+    <comment>the first line the shell prints when it starts, product and version.</comment>
+  </data>
+  <data name="WindowsHeadline" xml:space="preserve">
+    <value>Microsoft {0} [Version {1}]</value>
+  </data>
+  <data name="WindowsUnknown" xml:space="preserve">
+    <value>Windows</value>
+    <comment>used only when the registry will not say which Windows this is.</comment>
+  </data>
+  <data name="LabelEdition" xml:space="preserve">
+    <value>Edition</value>
+    <comment>these six labels are the ones Windows Settings uses under System, About. Match that translation.</comment>
+  </data>
+  <data name="LabelVersion" xml:space="preserve">
+    <value>Version</value>
+  </data>
+  <data name="LabelInstalledOn" xml:space="preserve">
+    <value>Installed on</value>
+  </data>
+  <data name="LabelOsBuild" xml:space="preserve">
+    <value>OS build</value>
+  </data>
+  <data name="LabelExperience" xml:space="preserve">
+    <value>Experience</value>
+  </data>
+  <data name="LabelSystemType" xml:space="preserve">
+    <value>System type</value>
+  </data>
+  <data name="OperatingSystem64" xml:space="preserve">
+    <value>64-bit operating system</value>
+  </data>
+  <data name="OperatingSystem32" xml:space="preserve">
+    <value>32-bit operating system</value>
+  </data>
+  <data name="ProcessorX64" xml:space="preserve">
+    <value>x64-based processor</value>
+  </data>
+  <data name="ProcessorX86" xml:space="preserve">
+    <value>x86-based processor</value>
+  </data>
+  <data name="ProcessorArm64" xml:space="preserve">
+    <value>ARM64-based processor</value>
+  </data>
+  <data name="ProcessorArm" xml:space="preserve">
+    <value>ARM-based processor</value>
+  </data>
+  <data name="ProcessorOther" xml:space="preserve">
+    <value>{0}-based processor</value>
+  </data>
+  <data name="SystemTypeAndProcessor" xml:space="preserve">
+    <value>{0}, {1}</value>
+    <comment>the operating system width and the processor, joined the way Settings joins them.</comment>
+  </data>
+  <data name="ProcessArchitectureNote" xml:space="preserve">
+    <value> ({0} process)</value>
+    <comment>added only when the shell is not built for the same architecture as the Windows it is running on.</comment>
+  </data>
+  <data name="NameValueLine" xml:space="preserve">
+    <value>{0}={1}</value>
+    <comment>how set and alias list what they hold. The equals sign is the syntax they are typed with, not punctuation.</comment>
+  </data>
+  <data name="PathLine" xml:space="preserve">
+    <value>PATH={0}</value>
+    <comment>PATH is the name of the variable and is not translated.</comment>
+  </data>
+  <data name="HelpLine" xml:space="preserve">
+    <value>  {0,-10} {1}</value>
+    <comment>a command and what it does. The width lines the descriptions up with each other.</comment>
+  </data>
+  <data name="HistoryLine" xml:space="preserve">
+    <value>{0,5}  {1}</value>
+    <comment>a number and the line that was typed.</comment>
+  </data>
+  <data name="CommandExpected" xml:space="preserve">
+    <value>A command is expected.</value>
+  </data>
+  <data name="NothingMeasured" xml:space="preserve">
+    <value>Nothing was started, so there is nothing else to report.</value>
+    <comment>a built in was measured, which runs inside the shell and has no accounting of its own.</comment>
+  </data>
+  <data name="TreeNotMeasured" xml:space="preserve">
+    <value>No job held this command, so anything it started is not counted here.</value>
+  </data>
+  <data name="LabelElapsed" xml:space="preserve">
+    <value>Elapsed</value>
+  </data>
+  <data name="LabelExitCode" xml:space="preserve">
+    <value>Exit code</value>
+  </data>
+  <data name="LabelProcesses" xml:space="preserve">
+    <value>Processes</value>
+  </data>
+  <data name="LabelUserTime" xml:space="preserve">
+    <value>User time</value>
+  </data>
+  <data name="LabelKernelTime" xml:space="preserve">
+    <value>Kernel time</value>
+  </data>
+  <data name="LabelCpuTime" xml:space="preserve">
+    <value>Processor time</value>
+  </data>
+  <data name="LabelCpuShare" xml:space="preserve">
+    <value>Processor share</value>
+    <comment>processor time against elapsed time, so more than 100 percent means it used more than one core.</comment>
+  </data>
+  <data name="LabelPeakJobMemory" xml:space="preserve">
+    <value>Peak memory</value>
+  </data>
+  <data name="LabelPeakWorkingSet" xml:space="preserve">
+    <value>Peak working set</value>
+  </data>
+  <data name="LabelPageFaults" xml:space="preserve">
+    <value>Page faults</value>
+  </data>
+  <data name="LabelGpuTime" xml:space="preserve">
+    <value>Graphics time</value>
+  </data>
+  <data name="LabelGpuMemory" xml:space="preserve">
+    <value>Graphics memory</value>
+  </data>
+  <data name="LabelBytesRead" xml:space="preserve">
+    <value>Bytes read</value>
+  </data>
+  <data name="LabelBytesWritten" xml:space="preserve">
+    <value>Bytes written</value>
+  </data>
+  <data name="LabelBytesOther" xml:space="preserve">
+    <value>Bytes other</value>
+  </data>
+  <data name="LabelOperations" xml:space="preserve">
+    <value>Operations</value>
+  </data>
+  <data name="MillisecondValue" xml:space="preserve">
+    <value>{0:N1} ms</value>
+  </data>
+  <data name="SecondValue" xml:space="preserve">
+    <value>{0:N3} s</value>
+  </data>
+  <data name="PercentValue" xml:space="preserve">
+    <value>{0:N1} %</value>
+  </data>
+  <data name="ByteValue" xml:space="preserve">
+    <value>{0:N0} B</value>
+  </data>
+  <data name="ScaledByteValue" xml:space="preserve">
+    <value>{0:N2} {1}</value>
+  </data>
+  <data name="HoldingLine" xml:space="preserve">
+    <value> Holding {0}</value>
+  </data>
+  <data name="ClipboardEmpty" xml:space="preserve">
+    <value>The clipboard holds no text.</value>
+  </data>
+  <data name="ClipboardUnavailable" xml:space="preserve">
+    <value>The clipboard could not be opened.</value>
+    <comment>another process was holding it for longer than we were prepared to wait.</comment>
+  </data>
+  <data name="ActPrompt" xml:space="preserve">
+    <value>Act on which? all, a number, or nothing: </value>
+  </data>
+  <data name="ActionPrompt" xml:space="preserve">
+    <value>[C]lose, [R]estart or [T]erminate? </value>
+  </data>
+  <data name="ActionCloseKey" xml:space="preserve">
+    <value>C</value>
+  </data>
+  <data name="ActionRestartKey" xml:space="preserve">
+    <value>R</value>
+  </data>
+  <data name="ActionTerminateKey" xml:space="preserve">
+    <value>T</value>
+  </data>
+  <data name="ActAllKey" xml:space="preserve">
+    <value>all</value>
+  </data>
+  <data name="ActDone" xml:space="preserve">
+    <value>Done.</value>
+  </data>
+  <data name="ActFailed" xml:space="preserve">
+    <value>It did not work, error {0}.</value>
+  </data>
+  <data name="ActNeedsConsole" xml:space="preserve">
+    <value>Choosing needs a console. Name the action with /k:c, /k:r or /k:t, and /f to skip the asking.</value>
+  </data>
+  <data name="NumberedProcessLine" xml:space="preserve">
+    <value>  {0,3}  {1,6}  {2}</value>
+    <comment>a process in the list to choose from, numbered so a number can be typed instead of an id.</comment>
+  </data>
+  <data name="MatchLimit" xml:space="preserve">
+    <value>Stopped at {0} matches.</value>
+    <comment>a fragment can match half of PATH, and each match costs a Restart Manager session.</comment>
+  </data>
+  <data name="NothingHolding" xml:space="preserve">
+    <value>Nothing is holding it.</value>
+  </data>
+  <data name="ProcessLine" xml:space="preserve">
+    <value>  {0,6}  {1}</value>
+    <comment>a process id and what it is, in the list shown before anything is killed.</comment>
+  </data>
+  <data name="SpecificationLine" xml:space="preserve">
+    <value>  {0}{1}</value>
+    <comment>a label already padded to the column width, and its value.</comment>
+  </data>
+  <data name="DirectoryEntryLine" xml:space="preserve">
+    <value>{0:dd/MM/yyyy  HH:mm} {1}  {2}</value>
+    <comment>one row of a dir listing. The date pattern is part of it, so a language that writes dates the other way round changes it here.</comment>
+  </data>
+  <data name="KeysResult" xml:space="preserve">
+    <value>[{0}] cursor {1}</value>
+    <comment>what the keys command reports, the line the editor ended up with and where the cursor sits in it.</comment>
+  </data>
+  <data name="DescribeAlias" xml:space="preserve">
+    <value>shows the macros, or defines one as name=text.</value>
+  </data>
+  <data name="DescribeBase64" xml:space="preserve">
+    <value>encodes a file, or the text itself when the name is not one. /d decodes, /o: writes to a file, /w: wraps, /t forces text.</value>
+  </data>
+  <data name="DescribeCd" xml:space="preserve">
+    <value>shows the current directory, or changes to one. cd - goes back.</value>
+  </data>
+  <data name="DescribeClip" xml:space="preserve">
+    <value>shows everything on the clipboard, or sets it from a pipe or from what follows. /v pastes text, /f writes the item paths, /c clears, /m watches.</value>
+  </data>
+  <data name="ClipboardHeader" xml:space="preserve">
+    <value> Clipboard</value>
+  </data>
+  <data name="ClipboardItems" xml:space="preserve">
+    <value> Items</value>
+  </data>
+  <data name="ClipboardItemLine" xml:space="preserve">
+    <value>  {0}</value>
+  </data>
+  <data name="ClipboardFormatLine" xml:space="preserve">
+    <value>  {0} {1}  {2}</value>
+  </data>
+  <data name="ClipboardNoItems" xml:space="preserve">
+    <value>The clipboard names no file or shell item.</value>
+  </data>
+  <data name="NotRendered" xml:space="preserve">
+    <value>(not rendered)</value>
+    <comment>a format the owner offers but would only produce on demand, and it declined to.</comment>
+  </data>
+  <data name="QuotedValue" xml:space="preserve">
+    <value>"{0}"</value>
+  </data>
+  <data name="NumberValue" xml:space="preserve">
+    <value>{0} (0x{1:X8})</value>
+  </data>
+  <data name="Ellipsis" xml:space="preserve">
+    <value>...</value>
+  </data>
+  <data name="DescriptorCount" xml:space="preserve">
+    <value>{0} described file(s)</value>
+  </data>
+  <data name="DropDescriptionValue" xml:space="preserve">
+    <value>{0}, "{1}", "{2}"</value>
+  </data>
+  <data name="DragContextValue" xml:space="preserve">
+    <value>image {0}, layered {1}, offset {2},{3}</value>
+    <comment>the undocumented DragContext format the shell writes while dragging.</comment>
+  </data>
+  <data name="DragImageValue" xml:space="preserve">
+    <value>{0} x {1}, offset {2},{3}, colour key 0x{4:X8}</value>
+  </data>
+  <data name="EffectCopy" xml:space="preserve">
+    <value>copy</value>
+  </data>
+  <data name="EffectMove" xml:space="preserve">
+    <value>move</value>
+  </data>
+  <data name="EffectLink" xml:space="preserve">
+    <value>link</value>
+  </data>
+  <data name="EffectNone" xml:space="preserve">
+    <value>none</value>
+  </data>
+  <data name="DescribeCls" xml:space="preserve">
+    <value>clears the screen.</value>
+  </data>
+  <data name="DescribeColor" xml:space="preserve">
+    <value>sets the screen colours, two hexadecimal digits.</value>
+  </data>
+  <data name="DescribeComplete" xml:space="preserve">
+    <value>shows what TAB would offer for the rest of the line.</value>
+  </data>
+  <data name="DescribeCopy" xml:space="preserve">
+    <value>copies files.</value>
+  </data>
+  <data name="DescribeDel" xml:space="preserve">
+    <value>deletes files. /s recurses, /f clears the read only attribute.</value>
+  </data>
+  <data name="DescribeDir" xml:space="preserve">
+    <value>lists a directory. /b bare, /s recurses, /a includes hidden, /o sorts, /r shows data streams.</value>
+  </data>
+  <data name="DescribeEcho" xml:space="preserve">
+    <value>writes its arguments.</value>
+  </data>
+  <data name="DescribeExit" xml:space="preserve">
+    <value>ends the shell, with an exit code if one is given.</value>
+  </data>
+  <data name="DescribeGuid" xml:space="preserve">
+    <value>generates GUIDs. A number says how many, /f: picks the format N D B P X, /u uppercases.</value>
+  </data>
+  <data name="DescribeHash" xml:space="preserve">
+    <value>hashes a file, or the text itself when the name is not one. /a: picks the algorithm, /f: hex or base64, /u uppercases, /t forces text.</value>
+  </data>
+  <data name="DescribeHelp" xml:space="preserve">
+    <value>lists these commands.</value>
+  </data>
+  <data name="DescribeHistory" xml:space="preserve">
+    <value>shows the command history. -c clears it.</value>
+  </data>
+  <data name="DescribeKeys" xml:space="preserve">
+    <value>runs a key script through the line editor and shows the result.</value>
+  </data>
+  <data name="DescribeLock" xml:space="preserve">
+    <value>shows which processes are holding something open. A name with no path is looked for among what is loaded. /m watches, /k closes them, /f asks nothing.</value>
+  </data>
+  <data name="DescribeMeasure" xml:space="preserve">
+    <value>runs a command and reports what it cost, in time, processor, memory, disk and graphics card. /p leaves out what it started.</value>
+  </data>
+  <data name="DescribeMd" xml:space="preserve">
+    <value>creates directories, including any missing parent.</value>
+  </data>
+  <data name="DescribeMove" xml:space="preserve">
+    <value>moves files and directories.</value>
+  </data>
+  <data name="DescribePath" xml:space="preserve">
+    <value>shows or sets PATH.</value>
+  </data>
+  <data name="DescribePopd" xml:space="preserve">
+    <value>returns to the directory pushd left.</value>
+  </data>
+  <data name="DescribePrompt" xml:space="preserve">
+    <value>shows or sets the prompt, using cmd's $ codes.</value>
+  </data>
+  <data name="DescribePushd" xml:space="preserve">
+    <value>remembers the current directory and changes to another.</value>
+  </data>
+  <data name="DescribePwd" xml:space="preserve">
+    <value>writes the current directory.</value>
+  </data>
+  <data name="DescribeRd" xml:space="preserve">
+    <value>removes directories. /s removes the contents too.</value>
+  </data>
+  <data name="DescribeRen" xml:space="preserve">
+    <value>renames a file or a directory in place.</value>
+  </data>
+  <data name="DescribeSet" xml:space="preserve">
+    <value>shows or sets variables. set /p name=text reads one in.</value>
+  </data>
+  <data name="DescribeStart" xml:space="preserve">
+    <value>starts a program in a console of its own, or opens a document.</value>
+  </data>
+  <data name="DescribeTitle" xml:space="preserve">
+    <value>sets the console title.</value>
+  </data>
+  <data name="DescribeType" xml:space="preserve">
+    <value>writes the contents of files.</value>
+  </data>
+  <data name="DescribeVer" xml:space="preserve">
+    <value>shows what this Windows is, in as much detail as it will admit to.</value>
+  </data>
+  <data name="DescribeProps" xml:space="preserve">
+    <value>shows everything the shell knows about a file or a namespace item.</value>
+  </data>
+  <data name="DescribeWhere" xml:space="preserve">
+    <value>shows every place a name resolves to.</value>
+  </data>
+  <data name="MonitorNeedsConsole" xml:space="preserve">
+    <value>Watching needs a console to paint on.</value>
+  </data>
+  <data name="MonitorHeaderWithKey" xml:space="preserve">
+    <value>{0}, {1}, Ctrl+C stops.</value>
+  </data>
+  <data name="LockMonitorKeys" xml:space="preserve">
+    <value>[C]lose [R]estart [T]erminate everything, [K] to pick</value>
+  </data>
+  <data name="ActionChooseKey" xml:space="preserve">
+    <value>K</value>
+  </data>
+  <data name="MonitorHeader" xml:space="preserve">
+    <value>{0}, Ctrl+C stops.</value>
+  </data>
+  <data name="InvalidInterval" xml:space="preserve">
+    <value>Invalid interval: {0}</value>
+  </data>
+</root>

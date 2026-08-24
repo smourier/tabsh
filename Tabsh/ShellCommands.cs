@@ -1,0 +1,340 @@
+namespace Tabsh;
+
+internal static class ShellCommands
+{
+    public static int Echo(BuiltinContext context)
+    {
+        var text = string.Join(' ', context.Arguments);
+        context.Output.WriteLine(text == "." ? string.Empty : text);
+        return 0;
+    }
+
+    public static int Set(BuiltinContext context)
+    {
+        if (context.Arguments.Count == 0)
+        {
+            foreach (var variable in context.Environment.Variables)
+            {
+                context.Output.WriteLine(string.Format(CultureInfo.CurrentCulture, Res.NameValueLine, variable.Key, variable.Value));
+            }
+
+            return 0;
+        }
+
+        if (string.Equals(context.Arguments[0], "/p", StringComparison.OrdinalIgnoreCase))
+            return Prompted(context);
+
+        // the lexer split on spaces, so an assignment whose value contained one is put back together here.
+        var text = string.Join(' ', context.Arguments);
+        var equals = text.IndexOf('=');
+        if (equals < 0)
+        {
+            var matches = context.Environment.Variables.Where(v => v.Key.StartsWith(text, StringComparison.OrdinalIgnoreCase)).ToList();
+            if (matches.Count == 0)
+                return context.Fail(string.Format(CultureInfo.CurrentCulture, Res.VariableNotDefined, text));
+
+            foreach (var match in matches)
+            {
+                context.Output.WriteLine(string.Format(CultureInfo.CurrentCulture, Res.NameValueLine, match.Key, match.Value));
+            }
+
+            return 0;
+        }
+
+        context.Environment.Set(text[..equals], text[(equals + 1)..]);
+        return 0;
+    }
+
+    private static int Prompted(BuiltinContext context)
+    {
+        var text = string.Join(' ', context.Arguments.Skip(1));
+        var equals = text.IndexOf('=');
+        if (equals < 0)
+            return context.Fail(Res.SyntaxIncorrect);
+
+        context.Output.Write(text[(equals + 1)..]);
+        context.Output.Flush();
+
+        var value = context.Input.ReadLine();
+        if (value == null)
+            return 1;
+
+        context.Environment.Set(text[..equals], value);
+        return 0;
+    }
+
+    public static int Path(BuiltinContext context)
+    {
+        if (context.Arguments.Count == 0)
+        {
+            context.Output.WriteLine(string.Format(CultureInfo.CurrentCulture, Res.PathLine, context.Environment.Get("PATH") ?? string.Empty));
+            return 0;
+        }
+
+        context.Environment.Set("PATH", string.Join(' ', context.Arguments));
+        return 0;
+    }
+
+    public static int Prompt(BuiltinContext context)
+    {
+        if (context.Arguments.Count == 0)
+        {
+            context.Output.WriteLine(context.Environment.Prompt);
+            return 0;
+        }
+
+        context.Environment.Prompt = string.Join(' ', context.Arguments);
+        return 0;
+    }
+
+    public static int Alias(BuiltinContext context)
+    {
+        if (context.Arguments.Count == 0)
+        {
+            foreach (var alias in context.Shell.Aliases.All)
+            {
+                context.Output.WriteLine(string.Format(CultureInfo.CurrentCulture, Res.NameValueLine, alias.Key, alias.Value));
+            }
+
+            return 0;
+        }
+
+        var text = string.Join(' ', context.Arguments);
+        var equals = text.IndexOf('=');
+        if (equals < 0)
+        {
+            var body = context.Shell.Aliases.Get(text);
+            if (body == null)
+                return context.Fail(string.Format(CultureInfo.CurrentCulture, Res.NotAnAlias, text));
+
+            context.Output.WriteLine(string.Format(CultureInfo.CurrentCulture, Res.NameValueLine, text, body));
+            return 0;
+        }
+
+        context.Shell.Aliases.Set(text[..equals], text[(equals + 1)..]);
+        return 0;
+    }
+
+    public static int Exit(BuiltinContext context)
+    {
+        var code = 0;
+        foreach (var argument in context.Arguments)
+        {
+            if (argument.StartsWith('/'))
+                continue;
+
+            if (int.TryParse(argument, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed))
+            {
+                code = parsed;
+            }
+
+            break;
+        }
+
+        context.Shell.RequestExit(code);
+        return code;
+    }
+
+    public static int Clear(BuiltinContext context)
+    {
+        if (context.WritesToConsole)
+        {
+            Console.Clear();
+        }
+
+        return 0;
+    }
+
+    public static int Title(BuiltinContext context)
+    {
+        Console.Title = string.Join(' ', context.Arguments);
+        return 0;
+    }
+
+    public static int Color(BuiltinContext context)
+    {
+        if (context.Arguments.Count == 0)
+        {
+            Console.ResetColor();
+            return 0;
+        }
+
+        var text = context.Arguments[0];
+        if (text.Length != 2 || !TryParseColor(text[0], out var background) || !TryParseColor(text[1], out var foreground))
+            return context.Fail(Res.ColourExpected);
+
+        Console.BackgroundColor = background;
+        Console.ForegroundColor = foreground;
+        return 0;
+    }
+
+    private static bool TryParseColor(char digit, out ConsoleColor color)
+    {
+        color = ConsoleColor.Black;
+        if (!Uri.IsHexDigit(digit))
+            return false;
+
+        color = (ConsoleColor)Convert.ToInt32(digit.ToString(), 16);
+        return true;
+    }
+
+    public static int Version(BuiltinContext context)
+    {
+        var assembly = Assembly.GetExecutingAssembly();
+        context.Output.WriteLine(string.Format(
+            CultureInfo.CurrentCulture,
+            Res.ProductHeadline,
+            assembly.GetCustomAttribute<AssemblyCompanyAttribute>()?.Company,
+            assembly.GetCustomAttribute<AssemblyTitleAttribute>()?.Title,
+            assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion));
+        context.Output.WriteLine();
+        WindowsVersion.Write(context.Output);
+        return 0;
+    }
+
+    // what the console is set to. Colour arriving as escape sequences is a console mode question and nothing else,
+    // and this is the answer to it.
+    public static int ConsoleModes(BuiltinContext context)
+    {
+        ConsoleSession.Describe(context.Output);
+        return 0;
+    }
+
+    public static int Where(BuiltinContext context)
+    {
+        if (context.Arguments.Count == 0)
+            return context.Fail(Res.NameExpected);
+
+        var found = false;
+        foreach (var name in context.Arguments)
+        {
+            foreach (var match in CommandResolver.FindAll(context.Environment, name))
+            {
+                context.Output.WriteLine(match);
+                found = true;
+            }
+
+            var builtin = context.Shell.Builtins.Find(name);
+            if (builtin != null)
+            {
+                context.Output.WriteLine(string.Format(CultureInfo.CurrentCulture, Res.BuiltInMarker, builtin.Name));
+                found = true;
+            }
+        }
+
+        if (!found)
+            return context.Fail(Res.NoFilesFound);
+
+        return 0;
+    }
+
+    public static int History(BuiltinContext context)
+    {
+        if (context.Arguments.Count > 0 && context.Arguments[0] is "-c" or "/c")
+        {
+            context.Shell.Editor.History.Clear();
+
+            // written out at once rather than at the end of the session,
+            // since a window closed with its cross never reaches the end of one and the history would come back.
+            context.Shell.Editor.History.Save(Shell.HistoryPath);
+            return 0;
+        }
+
+        var number = 1;
+        foreach (var entry in context.Shell.Editor.History.Entries)
+        {
+            context.Output.WriteLine(string.Format(CultureInfo.CurrentCulture, Res.HistoryLine, number, entry));
+            number++;
+        }
+
+        return 0;
+    }
+
+    public static int Start(BuiltinContext context)
+    {
+        var arguments = new List<string>(context.Arguments);
+        var wait = false;
+        while (arguments.Count > 0 && arguments[0].StartsWith('/'))
+        {
+            if (string.Equals(arguments[0], "/wait", StringComparison.OrdinalIgnoreCase))
+            {
+                wait = true;
+            }
+
+            arguments.RemoveAt(0);
+        }
+
+        if (arguments.Count == 0)
+        {
+            arguments.Add(context.Environment.CurrentDirectory);
+        }
+
+        var resolved = CommandResolver.Resolve(context.Environment, arguments);
+        try
+        {
+            if (resolved.Kind == ResolvedCommandKind.Executable)
+            {
+                using var child = ProcessLauncher.Start(
+                    resolved.CommandLine,
+                    context.Environment.CurrentDirectory,
+                    context.Environment.BuildEnvironmentBlock(),
+                    StandardHandles.FromConsole(),
+                    redirected: false,
+                    newConsole: true);
+
+                return wait ? child.Wait() : 0;
+            }
+
+            // a directory, a document, or a name only the association database knows.
+            var target = resolved.Kind == ResolvedCommandKind.Document ? resolved.Path : arguments[0];
+            using var opened = ShellExecutor.Execute(target, resolved.Arguments, context.Environment.CurrentDirectory, null);
+            return wait && opened != null ? opened.Wait() : 0;
+        }
+        catch (Win32Exception exception)
+        {
+            return context.Fail(exception.Message);
+        }
+    }
+
+    // what TAB would offer for a line, in the order it would offer it.
+    // Useful on its own, and it is the only way the completion can be checked without a person at the keyboard.
+    public static int Complete(BuiltinContext context)
+    {
+        var line = string.Join(' ', context.Arguments);
+        var session = context.Shell.Completer.Create(line, line.Length);
+        if (session == null)
+            return 1;
+
+        foreach (var candidate in session.Candidates)
+        {
+            context.Output.WriteLine(candidate.Text);
+        }
+
+        return 0;
+    }
+
+    // runs a written key script through the real line editor and shows what the line came out as.
+    // The other half of "complete": that one checks what TAB offers, this one checks what pressing it does.
+    public static int Keys(BuiltinContext context)
+    {
+        var line = context.Shell.Editor.Simulate(KeyScript.Parse(context.Arguments), out var cursor);
+        context.Output.WriteLine(string.Format(CultureInfo.CurrentCulture, Res.KeysResult, line, cursor));
+        return 0;
+    }
+
+    public static int Help(BuiltinContext context)
+    {
+        context.Output.WriteLine(Res.HelpHeader);
+        context.Output.WriteLine();
+        foreach (var builtin in context.Shell.Builtins.All)
+        {
+            context.Output.WriteLine(string.Format(CultureInfo.CurrentCulture, Res.HelpLine, builtin.Name, builtin.Description));
+        }
+
+        context.Output.WriteLine();
+        context.Output.WriteLine(Res.HelpTab);
+        context.Output.WriteLine(Res.HelpShiftTab);
+        context.Output.WriteLine(Res.HelpAutoCd);
+        return 0;
+    }
+}

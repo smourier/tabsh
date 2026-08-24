@@ -1,0 +1,97 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<AssemblyName>tabsh</AssemblyName>
+		<RootNamespace>Tabsh</RootNamespace>
+		<TargetFramework>net10.0-windows</TargetFramework>
+		<Nullable>enable</Nullable>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<ImplicitUsings>disable</ImplicitUsings>
+		<Platforms>x86;x64;ARM64</Platforms>
+		<Configurations>Release;Debug</Configurations>
+		<PublishAot>true</PublishAot>
+		<ApplicationManifest>app.manifest</ApplicationManifest>
+
+		<!-- a shell resolves paths, sorts names and compares them the way the user's Windows does, so the ICU data has to ship. -->
+		<InvariantGlobalization>false</InvariantGlobalization>
+
+		<!-- one restore has to cover every architecture publish.bat builds, see the AOTrino note on NETSDK1047. -->
+		<RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
+
+
+		<!--
+			The language the strings are written in, the one that lives in the main assembly rather than in a
+			satellite. Declaring it stops the runtime looking for an en satellite that will never exist.
+		-->
+		<NeutralLanguage>en</NeutralLanguage>
+
+		<Title>Tabsh</Title>
+		<AssemblyTitle>Tabsh</AssemblyTitle>
+		<Product>Tabsh</Product>
+		<Company>Simon Mourier</Company>
+		<Authors>Simon Mourier</Authors>
+		<Description>A small Windows command shell where TAB navigates the file system instead of merely listing it.</Description>
+		<Copyright>Copyright (C) 2025-$([System.DateTime]::UtcNow.ToString("yyyy")) Simon Mourier. All rights reserved.</Copyright>
+
+		<ProductVersion>1.1.0</ProductVersion>
+		<Version>1.1.0</Version>
+		<FileVersion>1.1.0</FileVersion>
+		<InformationalVersion>1.1.0</InformationalVersion>
+		<SourceRevisionId>$([System.DateTime]::UtcNow.ToString("yyyyMMddHHmmss"))</SourceRevisionId>
+		<ApplicationIcon>Tabsh.ico</ApplicationIcon>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.DisableRuntimeMarshallingAttribute" />
+	</ItemGroup>
+
+	<!--
+		The shell namespace, as a package rather than as interop redeclared here. It brings DirectN with it, which is
+		also where the Win32 declarations this used to make for itself now come from.
+	-->
+	<ItemGroup>
+		<PackageReference Include="ShellN.Extensions" Version="1.0.8" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Include="Tabsh.ico" />
+	</ItemGroup>
+
+	<!-- every string the user ever reads lives in Res.resx, and Res.Designer.cs is what Visual Studio makes of it. -->
+	<ItemGroup>
+		<EmbeddedResource Update="Res.resx">
+			<Generator>ResXFileCodeGenerator</Generator>
+			<LastGenOutput>Res.Designer.cs</LastGenOutput>
+		</EmbeddedResource>
+		<Compile Update="Res.Designer.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>Res.resx</DependentUpon>
+		</Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+		<Using Include="System" />
+		<Using Include="System.Collections.Generic" />
+		<Using Include="System.ComponentModel" />
+		<Using Include="System.Diagnostics" />
+		<Using Include="System.Globalization" />
+		<Using Include="System.IO" />
+		<Using Include="System.Linq" />
+		<Using Include="System.Reflection" />
+		<Using Include="System.Runtime.CompilerServices" />
+		<Using Include="System.Runtime.InteropServices" />
+		<Using Include="System.Text" />
+		<Using Include="System.Threading" />
+		<Using Include="DirectN" />
+		<Using Include="ShellN.Extensions" />
+		<Using Include="ShellN.Extensions.Utilities" />
+		<Using Include="Microsoft.Win32" />
+		<Using Include="Microsoft.Win32.SafeHandles" />
+		<Using Include="Tabsh.Editing" />
+		<Using Include="Tabsh.Interop" />
+		<Using Include="Tabsh.Parsing" />
+	</ItemGroup>
+
+</Project>
