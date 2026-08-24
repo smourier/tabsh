@@ -112,7 +112,7 @@ cd ..                     back up
 cd\                       the root of the drive you are on, which here is @:
 cd \Downloads             and a path from that root
 cd ::{20D04FE0-...}       an absolute name in a namespace, 20D04FE0-3AEA-1069-A2D8-08002B30309D is "This PC"
-cd E:\Aelyo               a fully qualified path means the file system, and leaves
+cd C:\Windows             a fully qualified path means the file system, and leaves
 ```
 
 TAB completes the children of wherever you are and the names under `@`, so nothing has to be typed in full, and `dir`
