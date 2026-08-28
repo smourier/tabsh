@@ -372,6 +372,8 @@ set TITLE=                 puts the default title back
 set TABCOLOR=              hands the tab back to the terminal
 ```
 
+![a tab coloured by name and by number](docs/tabcolor.png)
+
 Both live in a variable, so a parent can set them, and a shortcut or a terminal profile can carry them.
 
 ```
@@ -450,6 +452,8 @@ tabcolor {from Upto[1]}   one colour to a whole tree, wherever under it you are 
 tabcolor {from Name}      from the last part alone, so folders far apart sharing a name agree
 tabsh /seed:20202         another set of colours
 ```
+
+![four windows, four colours, one template](docs/tabcolor-auto.png)
 
 Nothing random goes into it. The same words give the same colour on every machine and after every restart,
 and case is folded the way the comparison below says. There are a hundred and eighty of them, far enough apart to be
