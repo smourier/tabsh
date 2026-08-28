@@ -165,9 +165,22 @@ internal static class ShellCommands
         return 0;
     }
 
+    // read back off the token class itself, so a token added there turns up here without being written down twice.
+    public static string TitleTokenList() => string.Format(CultureInfo.CurrentCulture, Res.TokenList, string.Join(", ", TokenFormatter.Names<TitleTokens>()));
+
     public static int Title(BuiltinContext context)
     {
-        Console.Title = string.Join(' ', context.Arguments);
+        // shown rather than emptied when nothing is given, the way prompt does it, and the rendering underneath it,
+        // since a window title is the one thing a shell writes that a script can never read back.
+        if (context.Arguments.Count == 0)
+        {
+            context.Output.WriteLine(context.Environment.Title);
+            context.Output.WriteLine(TokenFormatter.Format(context.Environment.Title, new TitleTokens(context.Environment)));
+            return 0;
+        }
+
+        context.Environment.Title = string.Join(' ', context.Arguments);
+        context.Environment.ApplyTitle();
         return 0;
     }
 

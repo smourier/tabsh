@@ -7,6 +7,7 @@ internal sealed class ShellEnvironment
     private readonly Dictionary<string, string> _variables = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<char, string> _driveDirectories = new();
     private const string _defaultPrompt = "$P$G";
+    private const string _defaultTitle = "{Name}";
 
     // what takes cd to the root of the shell namespace, and what an absolute name in it starts with.
     private const string _shellRoot = "@";
@@ -41,6 +42,14 @@ internal sealed class ShellEnvironment
     {
         get => Get("PROMPT") ?? _defaultPrompt;
         set => Set("PROMPT", value);
+    }
+
+    // a template rather than a fixed string, so that a title made of where you are follows you there.
+    // Setting it to nothing puts the default back, since a variable set to nothing is one that is not set.
+    public string Title
+    {
+        get => Get("TITLE") ?? _defaultTitle;
+        set => Set("TITLE", value);
     }
 
     public string? Get(string name) => _variables.TryGetValue(name, out var value) ? value : null;
@@ -264,6 +273,19 @@ internal sealed class ShellEnvironment
         }
 
         return builder.ToString();
+    }
+
+    // written before every prompt, which is what makes it follow a cd instead of naming where the shell started.
+    public void ApplyTitle()
+    {
+        try
+        {
+            Console.Title = TokenFormatter.Format(Title, new TitleTokens(this));
+        }
+        catch (Exception exception) when (exception is IOException or PlatformNotSupportedException)
+        {
+            // a console that will not take a title is not a reason to refuse a prompt.
+        }
     }
 
     private string ExpandPromptCode(char code) => char.ToUpperInvariant(code) switch

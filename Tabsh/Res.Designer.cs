@@ -978,6 +978,24 @@ namespace Tabsh {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to              tokens, written {Name} and replaced every prompt: {0}.
+        /// </summary>
+        internal static string TokenList {
+            get {
+                return ResourceManager.GetString("TokenList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Administrator.
+        /// </summary>
+        internal static string TitleAdministrator {
+            get {
+                return ResourceManager.GetString("TitleAdministrator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0,5}  {1}.
         /// </summary>
         internal static string HistoryLine {

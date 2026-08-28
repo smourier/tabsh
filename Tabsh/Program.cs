@@ -35,8 +35,8 @@ internal static class Program
 
         if (!options.Quiet && options.Command == null)
         {
-            Console.Title = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyTitleAttribute>()?.Title!;
-            Console.WriteLine(string.Format(CultureInfo.CurrentCulture, Res.BannerHeadline, Console.Title, Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version));
+            var product = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyTitleAttribute>()?.Title;
+            Console.WriteLine(string.Format(CultureInfo.CurrentCulture, Res.BannerHeadline, product, Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version));
             Console.WriteLine(Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyCopyrightAttribute>()?.Copyright);
             Console.WriteLine();
         }

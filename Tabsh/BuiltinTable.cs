@@ -43,7 +43,7 @@ internal sealed class BuiltinTable
         Add("ren", Res.DescribeRen, FileCommands.Rename, "rename");
         Add("set", Res.DescribeSet, ShellCommands.Set);
         Add("start", Res.DescribeStart, ShellCommands.Start);
-        Add("title", Res.DescribeTitle, ShellCommands.Title);
+        AddDetailed("title", Res.DescribeTitle, ShellCommands.Title, ShellCommands.TitleTokenList);
         Add("type", Res.DescribeType, FileCommands.Type);
         Add("ver", Res.DescribeVer, ShellCommands.Version);
         Add("where", Res.DescribeWhere, WhereCommands.Where, "which");
@@ -115,15 +115,25 @@ internal sealed class BuiltinTable
             return false;
 
         context.Output.WriteLine(string.Format(CultureInfo.CurrentCulture, Res.HelpLine, command.Name, command.Description));
+        if (command.Details != null)
+        {
+            context.Output.WriteLine(command.Details());
+        }
+
         return true;
     }
 
     private const string _helpSwitch = "/?";
     private const string _helpDash = "-?";
 
-    private void Add(string name, string description, Func<BuiltinContext, int> handler, params string[] otherNames)
+    private void Add(string name, string description, Func<BuiltinContext, int> handler, params string[] otherNames) =>
+        Register(new BuiltinCommand(name, description, handler), name, otherNames);
+
+    private void AddDetailed(string name, string description, Func<BuiltinContext, int> handler, Func<string> details, params string[] otherNames) =>
+        Register(new BuiltinCommand(name, description, handler, details), name, otherNames);
+
+    private void Register(BuiltinCommand command, string name, string[] otherNames)
     {
-        var command = new BuiltinCommand(name, description, handler);
         _commands[name] = command;
         foreach (var other in otherNames)
         {

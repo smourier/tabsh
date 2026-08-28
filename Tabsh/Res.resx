@@ -763,7 +763,15 @@
     <value>starts a program in a console of its own, or opens a document.</value>
   </data>
   <data name="DescribeTitle" xml:space="preserve">
-    <value>sets the console title.</value>
+    <value>shows or sets the window title, which follows the current directory until you set one.</value>
+  </data>
+  <data name="TokenList" xml:space="preserve">
+    <value>             tokens, written {{Name}} and replaced every prompt: {0}</value>
+    <comment>the words a title may be written with. The spaces line it up under the description above it.</comment>
+  </data>
+  <data name="TitleAdministrator" xml:space="preserve">
+    <value>Administrator</value>
+    <comment>shown in the window title when the shell is elevated, the way the console host says it.</comment>
   </data>
   <data name="DescribeType" xml:space="preserve">
     <value>writes the contents of files.</value>

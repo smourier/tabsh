@@ -34,10 +34,10 @@
 		<Description>A small Windows command shell where TAB navigates the file system instead of merely listing it.</Description>
 		<Copyright>Copyright (C) 2025-$([System.DateTime]::UtcNow.ToString("yyyy")) Simon Mourier. All rights reserved.</Copyright>
 
-		<ProductVersion>1.1.1</ProductVersion>
-		<Version>1.1.1</Version>
-		<FileVersion>1.1.1</FileVersion>
-		<InformationalVersion>1.1.1</InformationalVersion>
+		<ProductVersion>1.1.2</ProductVersion>
+		<Version>1.1.2</Version>
+		<FileVersion>1.1.2</FileVersion>
+		<InformationalVersion>1.1.2</InformationalVersion>
 		<SourceRevisionId>$([System.DateTime]::UtcNow.ToString("yyyyMMddHHmmss"))</SourceRevisionId>
 		<ApplicationIcon>Tabsh.ico</ApplicationIcon>
 	</PropertyGroup>
@@ -75,6 +75,7 @@
 		<Using Include="System" />
 		<Using Include="System.Collections.Generic" />
 		<Using Include="System.ComponentModel" />
+		<Using Include="System.Diagnostics.CodeAnalysis" />
 		<Using Include="System.Diagnostics" />
 		<Using Include="System.Globalization" />
 		<Using Include="System.IO" />

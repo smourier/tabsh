@@ -357,6 +357,37 @@ Control Panel launcher what it is. With nothing named it describes where you are
 Arguments reach the child exactly as they were written, quotes included. `find /c "text"` needs those quotes,
 because `find` parses its own command line.
 
+### title
+
+The window title follows the current directory, the way the prompt does. It is a template rather than a fixed string,
+so it is written again at every prompt and keeps up with a `cd`.
+
+```
+title                      shows the template and what it comes out as
+title {Name} on {Machine}  sets it
+set TITLE=                 puts the default back
+```
+
+It can also be set from outside, which is what a shortcut or a terminal profile needs. The variable is inherited like
+any other, and `/k` runs a command before the first prompt, so either of these starts the shell with a title on it.
+
+```
+set TITLE={Name} - build && tabsh   the variable is read at startup, and the banner still shows
+tabsh /k "title {Name} - deploy"    the cmd shaped way, though a command of any kind means no banner
+```
+
+The words it may be written with are the public properties of one class, so `title /?` lists them by reading them
+back and there is no second list to fall out of step with the first.
+
+```
+Admin  Date  Domain  Drive  ExitCode  Machine  Name  Parent  Path  Pid  Product  Time  User  Version
+```
+
+`{Name}` is the last part of where you are and `{Path}` is all of it. Both work in the shell namespace,
+where `@:\This PC` has a name like anywhere else. A word that names no token is left exactly as it was written,
+so a brace in a title is never a trap, and `{{` is a literal one. `{Admin}` is the word Administrator when the
+shell is elevated and nothing at all when it is not.
+
 ### The console is put in a known state
 
 Console modes belong to the console, not to the process that set them. Every program sharing the window sees the same
@@ -496,7 +527,7 @@ rd rmdir   removes directories. /s removes the contents too
 ren rename renames a file or a directory in place
 set        shows or sets variables. set /p name=text reads one in
 start      starts a program in a console of its own, or opens a document
-title      sets the console title
+title      shows or sets the window title, which follows the current directory. {Name} and its like are replaced
 type       writes the contents of files
 ver        shows what this Windows is, in as much detail as it will admit to
 where which shows every place a name resolves to

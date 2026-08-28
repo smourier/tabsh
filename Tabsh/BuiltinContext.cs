@@ -17,11 +17,11 @@ internal sealed class BuiltinContext
         Shell = shell;
         _words = words;
         _handles = handles;
-        Arguments = words.Skip(1).ToArray();
+        Arguments = [.. words.Skip(1)];
 
         // the same words with their quotes still on,
         // since start reads a quoted first word as a window title and cannot tell one apart without them.
-        RawArguments = rawWords != null && rawWords.Count == words.Count ? rawWords.Skip(1).ToArray() : Arguments;
+        RawArguments = rawWords != null && rawWords.Count == words.Count ? [.. rawWords.Skip(1)] : Arguments;
     }
 
     public Shell Shell { get; }

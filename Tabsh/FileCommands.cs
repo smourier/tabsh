@@ -209,9 +209,7 @@ internal static partial class FileCommands
         List<FileSystemInfo> entries;
         try
         {
-            entries = new DirectoryInfo(directory).EnumerateFileSystemInfos(pattern)
-                .Where(e => Selected(e, options))
-                .ToList();
+            entries = [.. new DirectoryInfo(directory).EnumerateFileSystemInfos(pattern).Where(e => Selected(e, options))];
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
@@ -1121,8 +1119,8 @@ internal static partial class FileCommands
         try
         {
             return includeDirectories
-                ? Directory.EnumerateFileSystemEntries(directory, name).ToList()
-                : Directory.EnumerateFiles(directory, name).ToList();
+                ? [.. Directory.EnumerateFileSystemEntries(directory, name)]
+                : [.. Directory.EnumerateFiles(directory, name)];
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {

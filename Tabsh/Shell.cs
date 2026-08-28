@@ -242,6 +242,7 @@ internal sealed class Shell
             return Console.ReadLine();
         }
 
+        Environment.ApplyTitle();
         return Editor.ReadLine(prompt);
     }
 
