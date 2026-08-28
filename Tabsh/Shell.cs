@@ -243,6 +243,7 @@ internal sealed class Shell
         }
 
         Environment.ApplyTitle();
+        Environment.ApplyTabColor();
         return Editor.ReadLine(prompt);
     }
 

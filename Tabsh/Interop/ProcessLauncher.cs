@@ -68,7 +68,7 @@ internal static unsafe partial class ProcessLauncher
             }
 
             if (!created)
-                throw new Win32Exception(Marshal.GetLastPInvokeError());
+                throw Failed(Marshal.GetLastPInvokeError(), commandLine);
 
             var job = Capture(information.hProcess);
 
@@ -91,6 +91,33 @@ internal static unsafe partial class ProcessLauncher
             }
         }
     }
+
+    // several of these messages carry a "%1" where the name of the program belongs, and nothing fills it in.
+    // cmd names the file it could not run, and a message reading "%1 is not a valid Win32 application" names nothing.
+    private static Win32Exception Failed(int error, string commandLine)
+    {
+        var message = new Win32Exception(error).Message;
+        if (!message.Contains(_messageInsert, StringComparison.Ordinal))
+            return new Win32Exception(error);
+
+        return new Win32Exception(error, message.Replace(_messageInsert, FirstWord(commandLine), StringComparison.Ordinal));
+    }
+
+    // the program out of the command line, which is quoted there whenever it holds a space.
+    private static string FirstWord(string commandLine)
+    {
+        var text = commandLine.TrimStart();
+        if (text.StartsWith('"'))
+        {
+            var end = text.IndexOf('"', 1);
+            return end > 0 ? text[1..end] : text;
+        }
+
+        var space = text.IndexOf(' ');
+        return space < 0 ? text : text[..space];
+    }
+
+    private const string _messageInsert = "%1";
 
     // 0 when no job could be arranged, which fails on Windows 7 inside a job since jobs did not nest until 8.
     // The child runs either way, it just cannot be killed as a tree.

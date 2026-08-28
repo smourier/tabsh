@@ -25,7 +25,7 @@ Two things about moving around:
 
 Then a handful of questions Windows knows the answer to and has never had a command for:
 
-* `lock` says which process is holding a file, found by name, even one you only know as `photobase`.
+* `lock` says which process is holding a file, found by name alone when nobody knows where it lives.
 * `clip` shows what is really on the clipboard, and reads it back, which `clip.exe` cannot do at all.
 * `props` prints everything the shell knows about a file, the Details tab and a good deal more.
 * `measure` runs a command and reports what it cost, everything it started included.
@@ -134,7 +134,8 @@ This PC and the Recycle Bin hang off the root and off no directory anywhere.
 ## Running programs
 
 Anything on the machine, resolved the way cmd resolves it: the current directory first, then each entry of PATH, trying
-the name as typed and then with each extension in PATHEXT.
+the name as typed and then with each extension in PATHEXT. A match carrying one of those extensions is preferred over a
+plain file of the same name, so a script with no extension does not shadow the `.cmd` sitting beside it.
 
 An unredirected command inherits the console outright. Nothing is pumped through this process, so full screen
 programs, colours, window resizing and Ctrl+C all behave exactly as they do under cmd.
@@ -158,6 +159,9 @@ Anything you can run under cmd runs here and behaves the same. Past that point:
   opens readme.md instead of `'readme.md' is not recognized`.
 * A name that is not a file at all is looked for in App Paths, which is how `chrome` and `code` are typeable without
   being on PATH.
+
+Arguments reach the child exactly as they were written, quotes included, since a program parses its own command line.
+`find /c "text"` needs those quotes and gets them.
 
 ### dir
 
@@ -191,7 +195,6 @@ A drag or a cut carries more still, `Preferred DropEffect` to tell a cut from a 
 
 The items are asked of the shell rather than read out of any one format, so a `Shell IDList Array` answers and so does
 a plain file drop, and a thing with no path at all still gets named. Nothing here walks an item id list by hand.
-`DragContext` and `DragImageBits` are undocumented, and `Preferred DropEffect` is how a cut is told apart from a copy.
 
 The other directions: `clip <text>` and `... | clip` set it, `clip /v` writes the text back out for a pipe, `clip /f`
 writes the item paths one per line, and `clip /c` clears it.
@@ -217,16 +220,16 @@ The third of those is the one that reaches a file with no path anybody remembers
 definition, and the process it is loaded in knows where it came from.
 
 ```
-lock wacom
+lock imagecodec
 
- Holding C:\Program Files\Tablet\Wacom\Wacom_TabletUser.exe
+ Holding C:\Program Files\Contoso\Imaging\imagecodec.dll
 
-   36452  "C:\Program Files\Tablet\Wacom\Wacom_TabletUser.exe"
+   36452  "C:\Program Files\Contoso\Imaging\ImagingHost.exe"
 
- Holding C:\WINDOWS\SYSTEM32\Wacom_Tablet.dll
+ Holding C:\WINDOWS\SYSTEM32\imagecodec.thumbnail.dll
 
-    9664  "C:\Program Files\Tablet\Wacom\Wacom_UpdateUtil.exe" -auto
-   30096  "C:\Program Files\Tablet\Wacom\Wacom_TouchUser.exe"
+    9664  C:\WINDOWS\explorer.exe
+   30096  "C:\Program Files\Contoso\Imaging\Preview.exe" -auto
 ```
 
 What the name starts with is tried before what merely contains it, so `cm` is `cmd.exe` rather than everything with a
@@ -243,9 +246,9 @@ answers for a path this process cannot stat, a file it has no rights to read amo
 `lock <name> /k` numbers the holders and asks which to act on, and then how.
 
 ```
-lock photobase /k
+lock imagecodec /k
 
- Holding C:\Program Files\Some\photobase.dll
+ Holding C:\Program Files\Contoso\Imaging\imagecodec.dll
 
     1   35000  C:\WINDOWS\explorer.exe
 
@@ -268,9 +271,9 @@ is already on the screen and read.
 ```
 13:10:01, [C]lose [R]estart [T]erminate everything, [K] to pick, Ctrl+C stops.
 
- Holding C:\WINDOWS\TEMP\held.txt
+ Holding D:\work\report.docx
 
-   21188  "C:\Program Files\PowerShell\7\pwsh.exe" -NoProfile -Command ...
+   21188  "C:\Program Files\Contoso\Writer\writer.exe" report.docx
 ```
 
 `C`, `R` and `T` act on everything listed, there and then. `K` brings up the numbered list to pick from instead, and
@@ -354,39 +357,107 @@ The path is read the way `cd` and `dir` read one, so `props @"This PC"` works, a
 in the namespace. Unlike `cd` it ends on things that are not folders, which is the only way to ask the desktop's
 Control Panel launcher what it is. With nothing named it describes where you are.
 
-Arguments reach the child exactly as they were written, quotes included. `find /c "text"` needs those quotes,
-because `find` parses its own command line.
-
-### title
+### title and tabcolor
 
 The window title follows the current directory, the way the prompt does. It is a template rather than a fixed string,
-so it is written again at every prompt and keeps up with a `cd`.
+so it is written again at every prompt and keeps up with a `cd`. `tabcolor` is the same over the colour of the tab.
+Windows Terminal takes that one, anything else drops it without a sound.
 
 ```
 title                      shows the template and what it comes out as
 title {Name} on {Machine}  sets it
-set TITLE=                 puts the default back
+tabcolor #204080           a colour, by name or as #rrggbb
+tabcolor {from Path}       or a template that works one out
+set TITLE=                 puts the default title back
+set TABCOLOR=              hands the tab back to the terminal
 ```
 
-It can also be set from outside, which is what a shortcut or a terminal profile needs. The variable is inherited like
-any other, and `/k` runs a command before the first prompt, so either of these starts the shell with a title on it.
+Both live in a variable, so a parent can set them, and a shortcut or a terminal profile can carry them.
 
 ```
 set TITLE={Name} - build && tabsh   the variable is read at startup, and the banner still shows
-tabsh /k "title {Name} - deploy"    the cmd shaped way, though a command of any kind means no banner
+tabsh /k "tabcolor {from Path}"     the cmd shaped way, though a command of any kind means no banner
 ```
 
-The words it may be written with are the public properties of one class, so `title /?` lists them by reading them
-back and there is no second list to fall out of step with the first.
+The words either of them may be written with are the public properties of one class,
+so `/?` lists them by reading them back and there is no second list to fall out of step with the first.
 
 ```
-Admin  Date  Domain  Drive  ExitCode  Machine  Name  Parent  Path  Pid  Product  Time  User  Version
+Admin  Date  Domain  Drive  LastExitCode  Machine  Name  Parent  Path  Pid  Product  Time  User  Version
+Segment[n]  Upto[n]
 ```
 
 `{Name}` is the last part of where you are and `{Path}` is all of it. Both work in the shell namespace,
-where `@:\This PC` has a name like anywhere else. A word that names no token is left exactly as it was written,
-so a brace in a title is never a trap, and `{{` is a literal one. `{Admin}` is the word Administrator when the
-shell is elevated and nothing at all when it is not.
+where `@:\This PC` has a name like anywhere else. `{Admin}` is the word Administrator when the shell is elevated,
+and nothing at all when it is not.
+
+`{Segment[n]}` is one part of where you are, the drive counting as the first,
+and `{Upto[n]}` is where you are cut back to that many parts.
+
+```
+standing in D:\work\acme\web\src
+
+{Segment[0]}    D:
+{Segment[1]}    work
+{Segment[2]}    acme
+{Segment[99]}                         nothing, there is no such part
+{Upto[0]}       D:
+{Upto[1]}       D:\work
+{Upto[2]}       D:\work\acme
+{Upto[99]}      D:\work\acme\web\src  more than there are is all of them
+```
+
+A group may hold a test rather than a word. A token name can never contain a space,
+so a group with one in it is a test, and that alone is what tells the two apart.
+
+```
+{Admin ifexists ? [ADMIN] }                                   nothing at all when the test fails
+{Name = build ? red : gray}                                   both answers
+{Admin ifexists ? red : {Path contains work ? blue : gray}}   they nest
+{Admin ifexists?red:blue}                                     the spaces can be left out
+{Name=build?red:gray}                                         a = or a != needs none either
+{Name contains 'Program Files'?a:b}                           an operand may be quoted
+{Name endswith 'sh ' ? a : b}                                 which is how it keeps a trailing space
+
+tests: =  !=  contains  startswith  endswith  ifexists  ifempty
+```
+
+The spaced form is looked for first, so a branch may hold a colon of its own, as in
+`{Name = build ? D:\work : elsewhere}`. A word like `contains` needs a space in front of it to be a word at all.
+An operand runs to the `?` and keeps its spaces, so quoting is never required,
+and a matching pair of `'` or `"` around one is removed.
+A name that stands for no token, and a test written with an operator nobody knows, are left as they were written.
+`{{` is a literal brace.
+
+This one decorates a title only when there is something to say.
+
+```
+title "{Name}{Admin ifexists ?  ({Admin})}"
+
+src                   when the shell is not elevated
+src (Administrator)   when it is
+```
+
+Two spaces follow the `?`, since the separator is ` ? ` and takes one of them. The quotes are there for the brackets,
+which are the shell's own grouping without them, and they also keep the double space from being joined back into one.
+`{Admin}` goes inside the answer so that the word stays translated.
+
+`{from <token>}` turns what a token says into a colour, which is how ten windows get ten colours from one template.
+
+```
+tabcolor {from Path}      every folder differs
+tabcolor {from Upto[1]}   one colour to a whole tree, wherever under it you are standing
+tabcolor {from Name}      from the last part alone, so folders far apart sharing a name agree
+tabsh /seed:20202         another set of colours
+```
+
+Nothing random goes into it. The same words give the same colour on every machine and after every restart,
+and case is folded the way the comparison below says. There are a hundred and eighty of them, far enough apart to be
+told at a glance, so two paths may land on the same colour but never on two that merely look alike.
+
+Names are compared the way Windows compares a file name, ignoring case and reading Unicode as code points.
+`tabsh /case` compares exactly instead, and `tabsh /case:<name>` takes any `StringComparison` by name.
+The culture aware ones are what read `café` written as four characters and as five as the same name.
 
 ### The console is put in a known state
 
@@ -419,8 +490,8 @@ between the shell and the program is. An interpreter in the middle is the thing 
 `.bat` files under cmd rather than under whatever COMSPEC names is there to prevent.
 
 **The code page** is set to UTF-8. An OEM code page cannot write most of Unicode, and what will not fit becomes a
-question mark on the way out, so a file named in Chinese lists as `??? Zaoshang hao.pdf` with nothing wrong with the
-file, the name, or the shell. Both code pages are set, so programs started here inherit it and their output is
+question mark on the way out, so a file named in Chinese lists as `????.pdf`, with nothing wrong with the file,
+the name, or the shell. Both code pages are set, so programs started here inherit it and their output is
 readable too. `chcp` still works if you want another one, this is only what the shell starts with.
 
 **Processed input** is turned back on. It is what makes Ctrl+C a console control event rather than a keystroke, and a
@@ -454,7 +525,7 @@ and works on every Windows this runs on.
 ```
 2 processes are still running:
    41288  C:\WINDOWS\system32\cmd.exe  /s /c "release.bat"
-   17904  "C:\Program Files\GitHub CLI\gh.exe" run watch 32631574210
+   17904  "C:\Program Files\GitHub CLI\gh.exe" run watch 1234567
 Terminate all of them (Y/N)?
 ```
 
@@ -495,42 +566,43 @@ the names cmd never had a program for. Anything that already ships as an executa
 Every command answers `/?`, written as its first argument, with what it does, and `help` lists them all.
 
 ```
-alias      shows the macros, or defines one as name=text
-base64     encodes a file or text. /d decodes, /o: writes to a file, /w: wraps, /t forces text
-clip       shows everything on the clipboard, or sets it. /v pastes, /f item paths, /c clears, /m watches
-cd chdir   shows the current directory, or changes to one. cd - goes back
-cls        clears the screen
-color      sets the screen colours, two hexadecimal digits
-complete   shows what TAB would offer for the rest of the line
-console    shows the console modes, which is what decides whether colour works
-copy       copies files
-del erase  deletes files. /s recurses, /f clears the read only attribute
-dir        lists a directory. /b bare, /s recurses, /a includes hidden, /o sorts, /r shows data streams
-echo       writes its arguments
-exit       ends the shell, with an exit code if one is given
-guid uuid  generates GUIDs. A number says how many, /f: picks the format, /u uppercases
-hash       hashes a file, or the text itself. /a: algorithm, /f: hex or base64, /u uppercases, /t forces text
-help ?     lists these commands
-history    shows the command history, oldest first, no repeats. /c clears it, file and all
-lock       shows which processes are holding something open, by path or by name. /m watches, /k ends them
-measure    runs a command and reports what it cost. /p leaves out what it started
-keys       runs a key script through the line editor and shows the result
-md mkdir   creates directories, including any missing parent
-move       moves files and directories
-path       shows or sets PATH
-popd       returns to the directory pushd left
-prompt     shows or sets the prompt, using cmd's $ codes
-props      shows every property the shell holds for a file or a namespace item
-pushd      remembers the current directory and changes to another
-pwd        writes the current directory
-rd rmdir   removes directories. /s removes the contents too
-ren rename renames a file or a directory in place
-set        shows or sets variables. set /p name=text reads one in
-start      starts a program in a console of its own, or opens a document
-title      shows or sets the window title, which follows the current directory. {Name} and its like are replaced
-type       writes the contents of files
-ver        shows what this Windows is, in as much detail as it will admit to
-where which shows every place a name resolves to
+alias        shows the macros, or defines one as name=text
+base64       encodes a file or text. /d decodes, /o: writes to a file, /w: wraps, /t forces text
+cd chdir     shows the current directory, or changes to one. cd - goes back
+clip         shows everything on the clipboard, or sets it. /v pastes, /f item paths, /c clears, /m watches
+cls          clears the screen
+color        sets the screen colours, two hexadecimal digits
+complete     shows what TAB would offer for the rest of the line
+console      shows the console modes, which is what decides whether colour works
+copy         copies files
+del erase    deletes files. /s recurses, /f clears the read only attribute
+dir          lists a directory. /b bare, /s recurses, /a includes hidden, /o sorts, /r shows data streams
+echo         writes its arguments
+exit         ends the shell, with an exit code if one is given
+guid uuid    generates GUIDs. A number says how many, /f: picks the format, /u uppercases
+hash         hashes a file, or the text itself. /a: algorithm, /f: hex or base64, /u uppercases, /t forces text
+help ?       lists these commands
+history      shows the command history, oldest first, no repeats. /c clears it, file and all
+keys         runs a key script through the line editor and shows the result
+lock         shows which processes are holding something open, by path or by name. /m watches, /k ends them
+md mkdir     creates directories, including any missing parent
+measure      runs a command and reports what it cost. /p leaves out what it started
+move         moves files and directories
+path         shows or sets PATH
+popd         returns to the directory pushd left
+prompt       shows or sets the prompt, using cmd's $ codes
+props        shows every property the shell holds for a file or a namespace item
+pushd        remembers the current directory and changes to another
+pwd          writes the current directory
+rd rmdir     removes directories. /s removes the contents too
+ren rename   renames a file or a directory in place
+set          shows or sets variables. set /p name=text reads one in
+start        starts a program in a console of its own, or opens a document
+tabcolor     shows or sets the colour of the terminal tab, from the same words as title
+title        shows or sets the window title, which follows the current directory. {Name} and its like are replaced
+type         writes the contents of files
+ver          shows what this Windows is, in as much detail as it will admit to
+where which  shows every place a name resolves to
 ```
 
 `complete` and `keys` exist so that the editing can be tested without a person at the keyboard.
@@ -547,8 +619,6 @@ three letters and `TAB` is the key.
 > keys cd SP Tabsh\ TAB TAB ESC
 [cd Tabsh\] cursor 9
 ```
-
-`tests\completion.txt` and `tests\editing.txt` are made of nothing else.
 
 ## Colour in the prompt
 
@@ -586,8 +656,8 @@ child is started, because interrupting the child is the console's job and not th
 
 Both under `%LOCALAPPDATA%\Tabsh`:
 
-* `history.txt`, the last thousand lines, loaded at startup and written a line at a time as you enter them.
-  Holding them back until the end would lose a session closed with its cross, so nothing waits.
+* `history.txt`, the last thousand lines, loaded at startup and written a line at a time as you enter them,
+  so a window closed with its cross keeps what was typed in it.
   A command that is already there moves to the end rather than being kept twice, so the file is a set and reads in
   the order things were last used. The oldest is first and the one you just ran is last.
 * `startup.tabsh`, read once at startup. There is no batch language here, it is a list of lines and each one is run as
@@ -600,6 +670,9 @@ tabsh                run interactively
 tabsh /c <command>   run the command and leave, the exit code is the command's
 tabsh /k <command>   run the command and then stay
 tabsh /q             no banner
+tabsh /case          tests in a title or a tab colour compare exactly, case included
+tabsh /case:<name>   they compare with that StringComparison, by name
+tabsh /seed:<number> the number a computed colour starts from, 0 unless it is given
 ```
 
 `-c`, `-k` and `-q` are accepted too. As with `cmd /s /c`, a command that both starts and ends with a quote loses that

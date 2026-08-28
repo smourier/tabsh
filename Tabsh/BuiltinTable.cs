@@ -43,7 +43,8 @@ internal sealed class BuiltinTable
         Add("ren", Res.DescribeRen, FileCommands.Rename, "rename");
         Add("set", Res.DescribeSet, ShellCommands.Set);
         Add("start", Res.DescribeStart, ShellCommands.Start);
-        AddDetailed("title", Res.DescribeTitle, ShellCommands.Title, ShellCommands.TitleTokenList);
+        AddDetailed("title", Res.DescribeTitle, ShellCommands.Title, ShellCommands.TokenHelp);
+        AddDetailed("tabcolor", Res.DescribeTabColor, ShellCommands.TabColor, ShellCommands.TokenHelp);
         Add("type", Res.DescribeType, FileCommands.Type);
         Add("ver", Res.DescribeVer, ShellCommands.Version);
         Add("where", Res.DescribeWhere, WhereCommands.Where, "which");

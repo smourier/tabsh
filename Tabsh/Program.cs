@@ -21,6 +21,12 @@ internal static class Program
     {
         var options = ShellOptions.Parse(Environment.CommandLine);
         var shell = new Shell();
+        shell.Environment.Comparison = options.Comparison;
+        shell.Environment.Seed = options.Seed;
+        if (options.BadComparison != null)
+        {
+            Console.Error.WriteLine(string.Format(CultureInfo.CurrentCulture, Res.ComparisonNotUnderstood, options.BadComparison, string.Join(", ", Enum.GetNames<StringComparison>())));
+        }
 
         // colour and cursor movement written by anything running here are obeyed rather than printed,
         // conhost leaves that off until an application asks for it.

@@ -1,9 +1,9 @@
 namespace Tabsh;
 
-// the words a title may be written with, one public property per token.
+// the words a title or a tab colour may be written with, one public property per token.
 // The help lists them by reading them back, so there is no second list to keep in step with this one.
-[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
-internal sealed class TitleTokens(ShellEnvironment environment)
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicMethods)]
+internal sealed class ShellTokens(ShellEnvironment environment)
 {
     private static readonly char[] _separators = ['\\', '/'];
 
@@ -43,15 +43,34 @@ internal sealed class TitleTokens(ShellEnvironment environment)
     public string Version => _version;
     public string Pid => _pid;
 
-    // the word only when it is deserved, so a title written with it says nothing at all when it is not.
+    // the word only when it is deserved, so a template written with it says nothing at all when it is not.
     public string Admin => _elevated ? Res.TitleAdministrator : string.Empty;
-    public string AdminParensLeft => _elevated ? $" ({Res.TitleAdministrator})" : string.Empty;
-    public string AdminParensRight => _elevated ? $"({Res.TitleAdministrator}) " : string.Empty;
 
     public string LastExitCode => environment.LastExitCode.ToString(CultureInfo.CurrentCulture);
     public string Date => DateTime.Now.ToString("d", CultureInfo.CurrentCulture);
     public string Time => DateTime.Now.ToString("T", CultureInfo.CurrentCulture);
 #pragma warning restore CA1822 // Mark members as static
+
+    // the parts of where you are, the drive counting as the first of them.
+    // "{Segment[1]}" is what tells one project tree from another, whatever either of them happens to hold below.
+    public string Segment(int index)
+    {
+        var parts = Parts();
+        return index >= 0 && index < parts.Length ? parts[index] : string.Empty;
+    }
+
+    // where you are cut back to its first parts, so everything under one tree answers with the same words.
+    // "{Upto[1]}" names the same tree whether you are standing in it or six folders below it.
+    public string Upto(int count)
+    {
+        if (count < 0)
+            return string.Empty;
+
+        var parts = Parts();
+        return string.Join(_separators[0], parts.Take(Math.Min(count + 1, parts.Length)));
+    }
+
+    private string[] Parts() => Path.Split(_separators, StringSplitOptions.RemoveEmptyEntries);
 
     private static string Segment(string path, out int start)
     {

@@ -25,7 +25,7 @@ internal static class CommandResolver
         var arguments = rawWords != null && rawWords.Count == words.Count
             ? string.Join(' ', rawWords.Skip(1))
             : CommandLineBuilder.Build(words.Skip(1));
-        var file = Find(environment, words[0]) ?? FindInApplicationPaths(words[0]);
+        var file = Runnable(environment, words[0]) ?? FindInApplicationPaths(words[0]);
         if (file == null)
             return ResolvedCommand.NotFound;
 
@@ -112,6 +112,22 @@ internal static class CommandResolver
     }
 
     public static string? Find(ShellEnvironment environment, string name) => FindAll(environment, name).FirstOrDefault();
+
+    // the first match PATHEXT says is runnable, and only where there is none, the first match of any kind.
+    // A file with none of those extensions is not a program, so a bare script cannot shadow the .cmd beside it.
+    private static string? Runnable(ShellEnvironment environment, string name)
+    {
+        var extensions = GetPathExtensions(environment);
+        string? first = null;
+        foreach (var found in FindAll(environment, name))
+        {
+            first ??= found;
+            if (extensions.Contains(Path.GetExtension(found), StringComparer.OrdinalIgnoreCase))
+                return found;
+        }
+
+        return first;
+    }
 
     // every match in search order, which is what "where" reports and what makes a shadowed program visible.
     // The same file reached twice is not two matches, and PATH holding a directory twice is common enough to matter.

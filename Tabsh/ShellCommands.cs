@@ -166,7 +166,14 @@ internal static class ShellCommands
     }
 
     // read back off the token class itself, so a token added there turns up here without being written down twice.
-    public static string TitleTokenList() => string.Format(CultureInfo.CurrentCulture, Res.TokenList, string.Join(", ", TokenFormatter.Names<TitleTokens>()));
+    // read back off the token class and the formatter themselves, so nothing here is a list written down twice.
+    // Both commands answer with the same one, because both are templates over the same words.
+    public static string TokenHelp() =>
+        string.Format(CultureInfo.CurrentCulture, Res.TokenList, string.Join(", ", TokenFormatter.Names<ShellTokens>())) +
+        System.Environment.NewLine +
+        string.Format(CultureInfo.CurrentCulture, Res.OperatorList, string.Join(", ", TokenFormatter.Operators)) +
+        System.Environment.NewLine +
+        Res.ComputedList;
 
     public static int Title(BuiltinContext context)
     {
@@ -175,12 +182,40 @@ internal static class ShellCommands
         if (context.Arguments.Count == 0)
         {
             context.Output.WriteLine(context.Environment.Title);
-            context.Output.WriteLine(TokenFormatter.Format(context.Environment.Title, new TitleTokens(context.Environment)));
+            context.Output.WriteLine(context.Environment.Render(context.Environment.Title));
             return 0;
         }
 
         context.Environment.Title = string.Join(' ', context.Arguments);
         context.Environment.ApplyTitle();
+        return 0;
+    }
+
+    public static int TabColor(BuiltinContext context)
+    {
+        if (context.Arguments.Count == 0)
+        {
+            var current = context.Environment.TabColor;
+            if (current.Length == 0)
+            {
+                context.Output.WriteLine(Res.TabColorNotSet);
+                return 0;
+            }
+
+            context.Output.WriteLine(current);
+            context.Output.WriteLine(context.Environment.Render(current));
+            return 0;
+        }
+
+        var format = string.Join(' ', context.Arguments);
+        var text = context.Environment.Render(format);
+
+        // said here and once, since a template is rendered again at every prompt and complaining there would be noise.
+        if (text.Length > 0 && !D3DCOLORVALUE.TryParseFromName(text, out _))
+            return context.Fail(string.Format(CultureInfo.CurrentCulture, Res.ColourNotUnderstood, text));
+
+        context.Environment.TabColor = format;
+        context.Environment.ApplyTabColor();
         return 0;
     }
 

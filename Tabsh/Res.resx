@@ -769,6 +769,28 @@
     <value>             tokens, written {{Name}} and replaced every prompt: {0}</value>
     <comment>the words a title may be written with. The spaces line it up under the description above it.</comment>
   </data>
+  <data name="OperatorList" xml:space="preserve">
+    <value>             tests: {0}, written {{Name contains x ? a : b}}</value>
+    <comment>the operators a test may use. The spaces line it up under the tokens above it.</comment>
+  </data>
+  <data name="DescribeTabColor" xml:space="preserve">
+    <value>shows or sets the colour of the terminal tab, from the same words as title.</value>
+  </data>
+  <data name="ComputedList" xml:space="preserve">
+    <value>             a colour worked out from one: {from Path}, or {from Upto[1]} for one colour to a tree</value>
+    <comment>the computed colour form. The spaces line it up under the tests above it.</comment>
+  </data>
+  <data name="ComparisonNotUnderstood" xml:space="preserve">
+    <value>'{0}' is not a comparison, so names are compared the way Windows compares a file name. Try one of: {1}</value>
+    <comment>{0} is what was written after /case:, {1} is the list of StringComparison names, which are not translated.</comment>
+  </data>
+  <data name="TabColorNotSet" xml:space="preserve">
+    <value>not set, so the terminal keeps the colour it chose.</value>
+  </data>
+  <data name="ColourNotUnderstood" xml:space="preserve">
+    <value>'{0}' is not a colour.</value>
+    <comment>{0} is what the template came out as, which is what has to be a colour name or a #rrggbb.</comment>
+  </data>
   <data name="TitleAdministrator" xml:space="preserve">
     <value>Administrator</value>
     <comment>shown in the window title when the shell is elevated, the way the console host says it.</comment>

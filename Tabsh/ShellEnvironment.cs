@@ -8,6 +8,11 @@ internal sealed class ShellEnvironment
     private readonly Dictionary<char, string> _driveDirectories = new();
     private const string _defaultPrompt = "$P$G";
     private const string _defaultTitle = "{Name}";
+    private const string _titleName = "TITLE";
+    private const string _tabColorName = "TABCOLOR";
+
+    // what was last written to the tab, so that a prompt only writes when the answer has actually changed.
+    private string? _lastTabColor;
 
     // what takes cd to the root of the shell namespace, and what an absolute name in it starts with.
     private const string _shellRoot = "@";
@@ -48,9 +53,26 @@ internal sealed class ShellEnvironment
     // Setting it to nothing puts the default back, since a variable set to nothing is one that is not set.
     public string Title
     {
-        get => Get("TITLE") ?? _defaultTitle;
-        set => Set("TITLE", value);
+        get => Get(_titleName) ?? _defaultTitle;
+        set => Set(_titleName, value);
     }
+
+    // the same kind of template, over the same words, rendered at the same moment. There is no default,
+    // since a terminal profile may have a colour of its own and taking it over uninvited would be rude.
+    public string TabColor
+    {
+        get => Get(_tabColorName) ?? string.Empty;
+        set => Set(_tabColorName, value);
+    }
+
+    public StringComparison Comparison { get; set; } = StringComparison.OrdinalIgnoreCase;
+
+    // what a computed colour is worked out with. Changing it deals every window a different colour,
+    // and leaving it alone is what makes a window keep the one it had yesterday.
+    public uint Seed { get; set; }
+
+    // the one place either of them turns into text, so they can never drift apart in what they understand.
+    public string Render(string format) => TokenFormatter.Format(format, new ShellTokens(this), Comparison, Seed);
 
     public string? Get(string name) => _variables.TryGetValue(name, out var value) ? value : null;
 
@@ -280,11 +302,44 @@ internal sealed class ShellEnvironment
     {
         try
         {
-            Console.Title = TokenFormatter.Format(Title, new TitleTokens(this));
+            Console.Title = Render(Title);
         }
         catch (Exception exception) when (exception is IOException or PlatformNotSupportedException)
         {
             // a console that will not take a title is not a reason to refuse a prompt.
+        }
+    }
+
+    public void ApplyTabColor()
+    {
+        var format = Get(_tabColorName);
+        if (format == null)
+        {
+            // handed back only once, on the way from having a colour to having none.
+            if (_lastTabColor != null)
+            {
+                _lastTabColor = null;
+                TerminalTab.ResetColor();
+            }
+
+            return;
+        }
+
+        var text = Render(format);
+        if (text == _lastTabColor)
+            return;
+
+        _lastTabColor = text;
+        if (text.Length == 0)
+        {
+            // a test that chose nothing is a tab with nothing to say, so the terminal has its colour back.
+            TerminalTab.ResetColor();
+            return;
+        }
+
+        if (D3DCOLORVALUE.TryParseFromName(text, out var color))
+        {
+            TerminalTab.SetColor(color);
         }
     }
 

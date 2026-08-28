@@ -987,6 +987,60 @@ namespace Tabsh {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to              tests: {0}, written {Name contains x ? a : b}.
+        /// </summary>
+        internal static string OperatorList {
+            get {
+                return ResourceManager.GetString("OperatorList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to shows or sets the colour of the terminal tab, from the same words as title.
+        /// </summary>
+        internal static string DescribeTabColor {
+            get {
+                return ResourceManager.GetString("DescribeTabColor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to              a colour worked out from one: {from Path}, or {from Upto[1]} for one colour to a tree.
+        /// </summary>
+        internal static string ComputedList {
+            get {
+                return ResourceManager.GetString("ComputedList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to '{0}' is not a comparison, so names are compared the way Windows compares a file name. Try one of: {1}.
+        /// </summary>
+        internal static string ComparisonNotUnderstood {
+            get {
+                return ResourceManager.GetString("ComparisonNotUnderstood", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to not set, so the terminal keeps the colour it chose.
+        /// </summary>
+        internal static string TabColorNotSet {
+            get {
+                return ResourceManager.GetString("TabColorNotSet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to '{0}' is not a colour.
+        /// </summary>
+        internal static string ColourNotUnderstood {
+            get {
+                return ResourceManager.GetString("ColourNotUnderstood", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Administrator.
         /// </summary>
         internal static string TitleAdministrator {
