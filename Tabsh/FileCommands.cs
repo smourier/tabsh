@@ -201,6 +201,9 @@ internal static partial class FileCommands
         if (!Directory.Exists(directory))
             return context.Fail(Res.FileNotFoundShort);
 
+        if (options.Recurse && !options.Bare)
+            return ListTree(context, directory, pattern, options);
+
         return ListDirectory(context, directory, pattern, options);
     }
 
@@ -225,6 +228,14 @@ internal static partial class FileCommands
             {
                 pager.WriteLine(Cased(options.Recurse ? entry.FullName : entry.Name, options));
             }
+
+            if (options.Recurse)
+            {
+                foreach (var child in SafeSubdirectories(directory))
+                {
+                    ListDirectory(context, child, pattern, options);
+                }
+            }
         }
         else if (options.Wide)
         {
@@ -235,38 +246,97 @@ internal static partial class FileCommands
         else
         {
             WriteHeader(context, directory);
-
-            foreach (var entry in entries)
-            {
-                var isDirectory = (entry.Attributes & FileAttributes.Directory) != 0;
-                var size = Marker(entry, isDirectory);
-                pager.WriteLine(string.Format(CultureInfo.CurrentCulture, Res.DirectoryEntryLine, Stamp(entry, options.TimeField), size, Decorate(entry, options)));
-
-                if (options.Streams)
-                {
-                    WriteStreams(context, entry);
-                }
-            }
-
+            WriteEntries(context, pager, entries, options);
             WriteSummary(context, entries, directory);
-        }
-
-        if (!options.Recurse)
-            return 0;
-
-        foreach (var child in SafeSubdirectories(directory))
-        {
-            ListDirectory(context, child, pattern, options);
         }
 
         return 0;
     }
 
-    private static void WriteSummary(BuiltinContext context, List<FileSystemInfo> entries, string directory)
+    private static int ListTree(BuiltinContext context, string directory, string pattern, ListOptions options)
     {
+        WriteVolume(context, directory);
+
+        var pager = new ScreenPager(context, options.Pause);
         long bytes = 0;
         var files = 0;
         var directories = 0;
+        foreach (var current in Tree(directory))
+        {
+            List<FileSystemInfo> entries;
+            try
+            {
+                entries = [.. new DirectoryInfo(current).EnumerateFileSystemInfos(pattern).Where(e => Selected(e, options))];
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                continue;
+            }
+
+            if (entries.Count == 0)
+                continue;
+
+            Sort(entries, options.Order, options.TimeField);
+            context.Output.WriteLine();
+            context.Output.WriteLine(string.Format(CultureInfo.CurrentCulture, Res.DirectoryOf, current));
+            context.Output.WriteLine();
+
+            if (options.Wide)
+            {
+                WriteWide(pager, entries, options);
+            }
+            else
+            {
+                WriteEntries(context, pager, entries, options);
+            }
+
+            Count(entries, out var theseFiles, out var theseDirectories, out var theseBytes);
+            context.Output.WriteLine(string.Format(CultureInfo.CurrentCulture, Res.FileCountSummary, theseFiles, theseBytes));
+            files += theseFiles;
+            directories += theseDirectories;
+            bytes += theseBytes;
+        }
+
+        context.Output.WriteLine();
+        context.Output.WriteLine(Res.TotalFilesListed);
+        context.Output.WriteLine(string.Format(CultureInfo.CurrentCulture, Res.FileCountSummary, files, bytes));
+        context.Output.WriteLine(string.Format(CultureInfo.CurrentCulture, Res.DirectoryCountSummary, directories, FreeSpace(directory)));
+        return 0;
+    }
+
+    private static IEnumerable<string> Tree(string directory)
+    {
+        yield return directory;
+
+        foreach (var child in SafeSubdirectories(directory))
+        {
+            foreach (var found in Tree(child))
+            {
+                yield return found;
+            }
+        }
+    }
+
+    private static void WriteEntries(BuiltinContext context, ScreenPager pager, List<FileSystemInfo> entries, ListOptions options)
+    {
+        foreach (var entry in entries)
+        {
+            var isDirectory = (entry.Attributes & FileAttributes.Directory) != 0;
+            var size = Marker(entry, isDirectory);
+            pager.WriteLine(string.Format(CultureInfo.CurrentCulture, Res.DirectoryEntryLine, Stamp(entry, options.TimeField), size, Decorate(entry, options)));
+
+            if (options.Streams)
+            {
+                WriteStreams(context, entry);
+            }
+        }
+    }
+
+    private static void Count(List<FileSystemInfo> entries, out int files, out int directories, out long bytes)
+    {
+        bytes = 0;
+        files = 0;
+        directories = 0;
         foreach (var entry in entries)
         {
             if ((entry.Attributes & FileAttributes.Directory) != 0)
@@ -279,7 +349,11 @@ internal static partial class FileCommands
                 bytes += entry is FileInfo counted ? counted.Length : 0;
             }
         }
+    }
 
+    private static void WriteSummary(BuiltinContext context, List<FileSystemInfo> entries, string directory)
+    {
+        Count(entries, out var files, out var directories, out var bytes);
         context.Output.WriteLine(string.Format(CultureInfo.CurrentCulture, Res.FileCountSummary, files, bytes));
         context.Output.WriteLine(string.Format(CultureInfo.CurrentCulture, Res.DirectoryCountSummary, directories, FreeSpace(directory)));
     }
@@ -413,6 +487,13 @@ internal static partial class FileCommands
 
     private static void WriteHeader(BuiltinContext context, string directory)
     {
+        WriteVolume(context, directory);
+        context.Output.WriteLine(string.Format(CultureInfo.CurrentCulture, Res.DirectoryOf, directory));
+        context.Output.WriteLine();
+    }
+
+    private static void WriteVolume(BuiltinContext context, string directory)
+    {
         context.Output.WriteLine();
         var root = Path.GetPathRoot(directory);
         if (!string.IsNullOrEmpty(root) && root.Length >= 2 && root[1] == ':')
@@ -420,7 +501,9 @@ internal static partial class FileCommands
             try
             {
                 var drive = new DriveInfo(root);
-                context.Output.WriteLine(string.Format(CultureInfo.CurrentCulture, Res.VolumeInDrive, root[0], drive.VolumeLabel));
+                context.Output.WriteLine(drive.VolumeLabel.Length == 0
+                    ? string.Format(CultureInfo.CurrentCulture, Res.VolumeInDriveNoLabel, root[0])
+                    : string.Format(CultureInfo.CurrentCulture, Res.VolumeInDrive, root[0], drive.VolumeLabel));
             }
             catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException)
             {
@@ -428,8 +511,6 @@ internal static partial class FileCommands
             }
         }
 
-        context.Output.WriteLine(string.Format(CultureInfo.CurrentCulture, Res.DirectoryOf, directory));
-        context.Output.WriteLine();
     }
 
     private static long FreeSpace(string directory)
@@ -474,7 +555,7 @@ internal static partial class FileCommands
             {
                 var byKind = IsDirectory(b).CompareTo(IsDirectory(a));
                 return byKind != 0 ? byKind : string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
-            },
+            }
         };
 
         entries.Sort(descending ? (a, b) => comparison(b, a) : comparison);

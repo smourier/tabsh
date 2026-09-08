@@ -292,8 +292,16 @@
   <data name="VolumeInDrive" xml:space="preserve">
     <value> Volume in drive {0} is {1}</value>
   </data>
+  <data name="VolumeInDriveNoLabel" xml:space="preserve">
+    <value> Volume in drive {0} has no label.</value>
+    <comment>what cmd writes for an unlabelled volume, rather than "is" followed by nothing.</comment>
+  </data>
   <data name="DirectoryOf" xml:space="preserve">
     <value> Directory of {0}</value>
+  </data>
+  <data name="TotalFilesListed" xml:space="preserve">
+    <value>     Total Files Listed:</value>
+    <comment>the heading over the totals of a recursive listing. The spaces are cmd's, keep them.</comment>
   </data>
   <data name="FileCountSummary" xml:space="preserve">
     <value>{0,16} File(s) {1,15:N0} bytes</value>

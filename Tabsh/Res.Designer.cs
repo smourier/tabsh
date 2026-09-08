@@ -501,6 +501,15 @@ namespace Tabsh {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to  Volume in drive {0} has no label..
+        /// </summary>
+        internal static string VolumeInDriveNoLabel {
+            get {
+                return ResourceManager.GetString("VolumeInDriveNoLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to  Volume in drive {0} is {1}.
         /// </summary>
         internal static string VolumeInDrive {
@@ -515,6 +524,15 @@ namespace Tabsh {
         internal static string DirectoryOf {
             get {
                 return ResourceManager.GetString("DirectoryOf", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to      Total Files Listed:.
+        /// </summary>
+        internal static string TotalFilesListed {
+            get {
+                return ResourceManager.GetString("TotalFilesListed", resourceCulture);
             }
         }
         
