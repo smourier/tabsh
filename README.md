@@ -51,11 +51,12 @@ Here TAB cycles through the names that match, and Enter on a directory goes into
 * ESC puts back exactly what you had typed before the first TAB.
 * Anything else you type ends the cycling and keeps the candidate that was showing.
 * `cd`, `chdir`, `pushd`, `rd` and `rmdir` are offered directories only, because that is all they can take.
-* After a `|` or a `&` the first word is a command again, so builtins, aliases and programs on PATH are offered there,
-  in that order and after the local files. A word after `>` or `<` is a file name and is never treated as a command.
+* In the first word of a command, which includes the word after a `|` or a `&`, builtins and aliases are offered too,
+  after the local files. A word after `>` or `<` is a file name and is never treated as a command.
 * Hidden and system entries are left out while nothing has been typed, the same as `dir` leaves them out, and are
   offered as soon as a name is started. So a bare TAB does not begin with `.git`, and `.g` still reaches it.
-* A name containing a space comes back quoted.
+* A `*` or a `?` in what was typed works as a pattern, so `*kit` reaches `Windows Kits`, which no plain prefix would.
+* A name containing a space, or any other character cmd needs quoted, comes back quoted, so the line reads back as typed.
 
 Then the second half of it: **a line that is nothing but the name of an existing directory changes to that directory.**
 No `cd` needed. `..` on its own goes up, `e:` goes back to where you last were on E.

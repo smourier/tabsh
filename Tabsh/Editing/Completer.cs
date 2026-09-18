@@ -38,8 +38,7 @@ internal sealed class Completer(Shell shell)
         var candidates = new List<CompletionCandidate>();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        // what is here comes first, always.
-        // The other way round buries it behind the hundred and thirty programs on PATH that begin with an R.
+        // what is here comes first, always, and the built in commands after it.
         var directoriesOnly = _directoryOnlyCommands.Contains(commandWord, StringComparer.OrdinalIgnoreCase);
 
         // in the namespace what is in front of you is that folder's children, not the directory the process sits in.
@@ -104,7 +103,7 @@ internal sealed class Completer(Shell shell)
         {
             foreach (var entry in new DirectoryInfo(searchDirectory).EnumerateFileSystemInfos())
             {
-                if (namePrefix.Length > 0 && !entry.Name.StartsWith(namePrefix, StringComparison.OrdinalIgnoreCase))
+                if (!Matches(entry.Name, namePrefix))
                     continue;
 
                 // with nothing typed the answer should be the listing dir gives, which leaves these out.
@@ -160,7 +159,7 @@ internal sealed class Completer(Shell shell)
             if (directoriesOnly && !child.IsFolder)
                 continue;
 
-            if (namePrefix.Length > 0 && !child.Name.StartsWith(namePrefix, StringComparison.CurrentCultureIgnoreCase))
+            if (!Matches(child.Name, namePrefix))
                 continue;
 
             Add(candidates, seen, Quote(prefix + child.Name), child.IsFolder);
@@ -186,15 +185,14 @@ internal sealed class Completer(Shell shell)
             if (directoriesOnly && !child.IsFolder)
                 continue;
 
-            if (token.Length > 0 && !child.Name.StartsWith(token, StringComparison.CurrentCultureIgnoreCase))
+            if (!Matches(child.Name, token))
                 continue;
 
             Add(candidates, seen, Quote(child.Name), child.IsFolder);
         }
     }
 
-    // sorted apart rather than together, or a built in lands in the middle of the programs it shares a letter with.
-    // Only ever called with something typed, an empty token would walk every directory on PATH.
+    // the shell's own commands and aliases, which live nowhere on disk and so are never found by the listing above.
     private void AddCommandNames(List<CompletionCandidate> candidates, HashSet<string> seen, string token)
     {
         // a token that already names a path is a path, whatever position it is in.
@@ -204,53 +202,25 @@ internal sealed class Completer(Shell shell)
         var builtins = new List<string>();
         foreach (var name in shell.Builtins.Names.Concat(shell.Aliases.Names))
         {
-            if (name.StartsWith(token, StringComparison.OrdinalIgnoreCase))
+            if (Matches(name, token))
             {
                 builtins.Add(name);
             }
         }
 
-        // the current directory is skipped here, it has already been offered as part of the file system.
-        var programs = new List<string>();
-        var extensions = CommandResolver.GetPathExtensions(shell.Environment);
-        foreach (var directory in CommandResolver.SearchDirectories(shell.Environment).Skip(1))
-        {
-            programs.AddRange(ExecutablesIn(directory, token, extensions));
-        }
-
         builtins.Sort(StringComparer.OrdinalIgnoreCase);
-        programs.Sort(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var name in builtins.Concat(programs))
+        foreach (var name in builtins)
         {
             Add(candidates, seen, Quote(name), isDirectory: false);
         }
     }
 
-    private static IEnumerable<string> ExecutablesIn(string directory, string token, string[] extensions)
-    {
-        List<string> found = [];
-        try
-        {
-            if (!Directory.Exists(directory))
-                return found;
+    // what was typed is the start of a name with the rest left open, and a * or a ? in it works as in any pattern.
+    // One rule for folders, files and builtins, so a pattern reaches a folder as readily as a command.
+    private static bool Matches(string name, string typed) =>
+        typed.Length == 0 || FileSystemName.MatchesSimpleExpression(typed + _anyRest, name, ignoreCase: true);
 
-            foreach (var file in Directory.EnumerateFiles(directory, token + "*"))
-            {
-                var extension = Path.GetExtension(file);
-                if (extensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
-                {
-                    found.Add(Path.GetFileName(file));
-                }
-            }
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException)
-        {
-            // a PATH entry pointing at a disconnected drive is not worth failing the completion over.
-        }
-
-        return found;
-    }
+    private const string _anyRest = "*";
 
     private static void Add(List<CompletionCandidate> candidates, HashSet<string> seen, string text, bool isDirectory)
     {
@@ -260,7 +230,11 @@ internal sealed class Completer(Shell shell)
         }
     }
 
-    private static string Quote(string value) => value.IndexOfAny([' ', '\t']) >= 0 ? "\"" + value + "\"" : value;
+    // cmd's own list of the characters that force quotes, from "cmd /?", so a completed name always reads back as itself.
+    // Unquoted, a "&" or a "(" is grammar, a "^" escapes the next character, and a "," or a "=" separates arguments.
+    private static readonly char[] _needsQuotes = [' ', '\t', '&', '(', ')', '[', ']', '{', '}', '^', '=', ';', '!', '\'', '+', ',', '`', '~'];
+
+    private static string Quote(string value) => value.IndexOfAny(_needsQuotes) >= 0 ? "\"" + value + "\"" : value;
 
     // where the token being completed starts, which is after the last delimiter that was not inside quotes.
     private static int FindTokenStart(string text, int cursor)
