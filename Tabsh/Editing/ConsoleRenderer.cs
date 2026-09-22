@@ -28,30 +28,25 @@ internal sealed class ConsoleRenderer
             return;
 
         var line = _prompt + text;
+        var painted = _promptWidth + VisibleLength(text);
+        var offset = _anchorLeft + _promptWidth + cursor;
         Console.CursorVisible = false;
         try
         {
+            // the row after the last cell written, since a line filling its last row exactly leaves the cursor below it,
+            // and without terminal processing the console scrolls there on its own.
+            MakeRoom(_anchorTop + (_anchorLeft + Math.Max(painted, _paintedLength)) / width);
+
             Console.SetCursorPosition(_anchorLeft, Math.Max(0, _anchorTop));
             Console.Write(line);
 
             // whatever the previous, longer line left behind has to be wiped, or a deleted character stays on screen.
-            var painted = _promptWidth + VisibleLength(text);
             if (painted < _paintedLength)
             {
                 Console.Write(new string(' ', _paintedLength - painted));
-                painted = _paintedLength;
             }
 
-            var expectedTop = _anchorTop + (_anchorLeft + painted) / width;
-            var scrolled = expectedTop - Console.CursorTop;
-            if (scrolled > 0)
-            {
-                _anchorTop -= scrolled;
-            }
-
-            _paintedLength = _promptWidth + VisibleLength(text);
-
-            var offset = _anchorLeft + _promptWidth + cursor;
+            _paintedLength = painted;
             Console.SetCursorPosition(offset % width, Math.Max(0, _anchorTop + offset / width));
         }
         catch (Exception exception) when (exception is ArgumentOutOfRangeException or IOException)
@@ -147,6 +142,22 @@ internal sealed class ConsoleRenderer
     // what ends an operating system command sequence, written as a code point because a raw one is invisible here.
     private const char _bell = (char)0x07;
 
+    // the rows a line is about to need are made first, by scrolling at the bottom of the buffer.
+    // Reading the cursor back afterwards fails at the last column, where a console holds it on the same row until the next character.
+    private void MakeRoom(int lastRow)
+    {
+        var bottom = Console.BufferHeight - 1;
+        if (lastRow <= bottom)
+            return;
+
+        var overflow = lastRow - bottom;
+        Console.SetCursorPosition(0, bottom);
+        Console.Write(new string(_lineFeed, overflow));
+        _anchorTop -= overflow;
+    }
+
+    private const char _lineFeed = '\n';
+
     // leaves the cursor past the end of the finished line, ready for whatever the command prints.
     public void Finish(string text)
     {
@@ -157,10 +168,19 @@ internal sealed class ConsoleRenderer
             return;
         }
 
-        var offset = _anchorLeft + _promptWidth + VisibleLength(text);
+        var end = _anchorLeft + _promptWidth + VisibleLength(text);
         try
         {
-            Console.SetCursorPosition(offset % width, Math.Max(0, _anchorTop + offset / width));
+            // a line that fills its last row exactly leaves the cursor on that row's last cell,
+            // so the newline below moves to the next row instead of leaving an empty one behind it.
+            if (end > 0 && end % width == 0)
+            {
+                Console.SetCursorPosition(width - 1, Math.Max(0, _anchorTop + end / width - 1));
+            }
+            else
+            {
+                Console.SetCursorPosition(end % width, Math.Max(0, _anchorTop + end / width));
+            }
         }
         catch (Exception exception) when (exception is ArgumentOutOfRangeException or IOException)
         {
