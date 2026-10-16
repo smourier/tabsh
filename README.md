@@ -39,15 +39,15 @@ All of it is one executable, with nothing to install, no module to import and no
 
 ## The point of it
 
-cmd's TAB completes a name and stops there. It never takes you anywhere, so getting three directories deep means
-typing three separators and pressing TAB six times, and at no point has the shell actually moved.
+cmd's TAB completes a name and stops there. It never takes you anywhere, so a path built three directories deep
+still needs a `cd` in front of it, and at no point has the shell actually moved.
 
 Here TAB cycles through the names that match, and Enter on a directory goes into it.
 
 * TAB cycles forward through the matches, Shift+TAB cycles back.
 * **What is in front of you comes first.** The directory the prompt is showing is offered before anything else, and on
   an empty line TAB answers with exactly the listing `dir` would have given. Directories lead, then files.
-* Directories are completed with their trailing separator, so the next TAB looks inside rather than beside.
+* Directories are completed without a trailing separator, the same as cmd. Type the `\` and TAB again to look inside.
 * ESC puts back exactly what you had typed before the first TAB.
 * Anything else you type ends the cycling and keeps the candidate that was showing.
 * `cd`, `chdir`, `pushd`, `rd` and `rmdir` are offered directories only, because that is all they can take.

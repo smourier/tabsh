@@ -1,7 +1,7 @@
 namespace Tabsh.Editing;
 
-// directories come first and keep their trailing separator,
-// which is what makes the next TAB search inside them and lets Enter read as "go there" rather than "run that".
+// directories come first, and are completed without a trailing separator, the way cmd completes them,
+// so typing the separator is what moves the next TAB inside one.
 internal sealed class Completer(Shell shell)
 {
     private static readonly char[] _pathSeparators = ['\\', '/', ':'];
@@ -131,7 +131,7 @@ internal sealed class Completer(Shell shell)
 
         foreach (var directory in directories)
         {
-            Add(candidates, seen, Quote(prefix + directory + "\\"), isDirectory: true);
+            Add(candidates, seen, Quote(prefix + directory), isDirectory: true);
         }
 
         foreach (var file in files)
@@ -177,7 +177,7 @@ internal sealed class Completer(Shell shell)
         return children;
     }
 
-    // no trailing separator here, a shell child is reached by its name and only its name.
+    // a shell child is reached by its name and only its name.
     private void AddShellEntries(List<CompletionCandidate> candidates, HashSet<string> seen, string token, bool directoriesOnly)
     {
         foreach (var child in Ordered(shell.Environment.Location.Children()))

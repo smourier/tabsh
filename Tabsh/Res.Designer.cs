@@ -582,7 +582,7 @@ namespace Tabsh {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to TAB cycles through the names that match, directories first and with a trailing separator..
+        ///   Looks up a localized string similar to TAB cycles through the names that match, directories first..
         /// </summary>
         internal static string HelpTab {
             get {

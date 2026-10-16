@@ -321,7 +321,7 @@
     <value>Built in commands, everything else is looked for on PATH.</value>
   </data>
   <data name="HelpTab" xml:space="preserve">
-    <value>TAB cycles through the names that match, directories first and with a trailing separator.</value>
+    <value>TAB cycles through the names that match, directories first.</value>
   </data>
   <data name="HelpShiftTab" xml:space="preserve">
     <value>Shift+TAB goes back through them, ESC puts back what you had typed.</value>

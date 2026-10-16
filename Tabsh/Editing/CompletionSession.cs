@@ -1,7 +1,7 @@
 namespace Tabsh.Editing;
 
 // one run of TAB presses over the same token, ended by any other key so the next TAB starts from the new text.
-// Walking down a tree works because the separator the last candidate left behind moves the search inside it.
+// Walking down a tree is a separator typed after the candidate showing, which moves the next search inside it.
 internal sealed class CompletionSession(int tokenStart, string originalText, IReadOnlyList<CompletionCandidate> candidates)
 {
     public int TokenStart { get; } = tokenStart;

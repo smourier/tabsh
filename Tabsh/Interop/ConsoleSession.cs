@@ -84,7 +84,7 @@ internal static unsafe partial class ConsoleSession
     {
         if (_input != _invalidHandle && GetConsoleMode(_input, out var inputMode))
         {
-            SetConsoleMode(_input, inputMode | ENABLE_PROCESSED_INPUT | ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT);
+            SetConsoleMode(_input, (inputMode | ENABLE_PROCESSED_INPUT | ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT) & ~ENABLE_VIRTUAL_TERMINAL_INPUT);
         }
 
         if (_output != _invalidHandle && GetConsoleMode(_output, out var outputMode))
@@ -197,6 +197,7 @@ internal static unsafe partial class ConsoleSession
     private const uint ENABLE_PROCESSED_INPUT = 0x0001;
     private const uint ENABLE_LINE_INPUT = 0x0002;
     private const uint ENABLE_ECHO_INPUT = 0x0004;
+    private const uint ENABLE_VIRTUAL_TERMINAL_INPUT = 0x0200;
 
     private const uint ENABLE_PROCESSED_OUTPUT = 0x0001;
     private const uint ENABLE_WRAP_AT_EOL_OUTPUT = 0x0002;
