@@ -17,8 +17,8 @@ internal static class ConsoleMonitor
         if (Console.IsOutputRedirected || !context.WritesToConsole)
             return context.Fail(Res.MonitorNeedsConsole);
 
-        // the shell cancels Ctrl+C and only acts on it when a child is running,
-        // so a built in that wants to be stopped by it has to listen for itself.
+        // the shell only stops a built in at its next write,
+        // and a monitor spends its time waiting between repaints, so it listens for Ctrl+C itself.
         var stop = new ManualResetEventSlim(false);
         void cancel(object? sender, ConsoleCancelEventArgs e)
         {

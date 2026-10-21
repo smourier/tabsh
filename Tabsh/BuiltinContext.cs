@@ -6,7 +6,9 @@ internal sealed class BuiltinContext
 {
     private readonly StandardHandles _handles;
     private readonly IReadOnlyList<string> _words;
+    private readonly int _interruptionsAtStart;
     private TextWriter? _output;
+    private TextWriter? _interruptibleOutput;
     private TextWriter? _error;
     private TextReader? _input;
 
@@ -15,6 +17,7 @@ internal sealed class BuiltinContext
         ArgumentNullException.ThrowIfNull(words);
 
         Shell = shell;
+        _interruptionsAtStart = shell.Interruptions;
         _words = words;
         _handles = handles;
         Arguments = [.. words.Skip(1)];
@@ -30,7 +33,7 @@ internal sealed class BuiltinContext
     public IReadOnlyList<string> Arguments { get; }
     public IReadOnlyList<string> RawArguments { get; }
 
-    public TextWriter Output => _output ??= StandardStreams.CreateWriter(_handles.Output);
+    public TextWriter Output => _interruptibleOutput ??= new InterruptibleWriter(_output ??= StandardStreams.CreateWriter(_handles.Output), this);
     public TextWriter Error => _error ??= StandardStreams.CreateWriter(_handles.Error);
     public TextReader Input => _input ??= StandardStreams.CreateReader(_handles.Input);
 
@@ -39,6 +42,14 @@ internal sealed class BuiltinContext
     // true when a pipe or a redirection gave this command an input of its own,
     // since a script fed to the shell arrives on the same handle and reading it would eat the rest of the script.
     public bool HasOwnInput => !StandardStreams.IsConsoleInput(_handles.Input);
+
+    public bool Interrupted => Shell.Interruptions != _interruptionsAtStart;
+
+    public void ThrowIfInterrupted()
+    {
+        if (Interrupted)
+            throw new OperationCanceledException();
+    }
 
     public int Fail(string message)
     {

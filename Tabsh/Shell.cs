@@ -11,6 +11,8 @@ internal sealed class Shell
     // how many times Ctrl+C has been pressed at the command now running, counted so the second one can insist.
     private int _interrupts;
 
+    private int _interruptions;
+
     // whether the question below is already on screen, since console events do not wait their turn.
     private int _asking;
 
@@ -23,6 +25,7 @@ internal sealed class Shell
     }
 
     public Executor Executor => _executor;
+    public int Interruptions => Volatile.Read(ref _interruptions);
     public ShellEnvironment Environment { get; } = new();
     public AliasTable Aliases { get; } = new();
     public BuiltinTable Builtins { get; }
@@ -77,6 +80,7 @@ internal sealed class Shell
     private void OnInterrupt(object? sender, ConsoleCancelEventArgs e)
     {
         e.Cancel = true;
+        Interlocked.Increment(ref _interruptions);
 
         if (e.SpecialKey != ConsoleSpecialKey.ControlBreak && Interlocked.Increment(ref _interrupts) <= 1)
             return;

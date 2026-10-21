@@ -209,6 +209,7 @@ internal static partial class FileCommands
 
     private static int ListDirectory(BuiltinContext context, string directory, string pattern, ListOptions options)
     {
+        context.ThrowIfInterrupted();
         List<FileSystemInfo> entries;
         try
         {
@@ -263,6 +264,7 @@ internal static partial class FileCommands
         var directories = 0;
         foreach (var current in Tree(directory))
         {
+            context.ThrowIfInterrupted();
             List<FileSystemInfo> entries;
             try
             {

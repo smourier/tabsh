@@ -94,6 +94,10 @@ internal sealed class BuiltinTable
         {
             return command.Handler(context);
         }
+        catch (OperationCanceledException) when (context.Interrupted)
+        {
+            return 1;
+        }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException or Win32Exception)
         {
             return context.Fail(exception.Message);
